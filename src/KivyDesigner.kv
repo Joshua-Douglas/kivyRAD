@@ -1,6 +1,7 @@
+#:import ICON_PATH main.ICON_PATH
 #:set menubar_color (0.2, 0.2, 0.2, 1)
 
-BoxLayout:
+<KivyDesignerRoot>:
     orientation: 'vertical'
     # This BoxLayout and child layouts create the menubar
     BoxLayout: 
@@ -15,7 +16,7 @@ BoxLayout:
         Image:
             size_hint: None, 1
             width: '30dp'
-            source: '.\data\kivy-icon-48.png'
+            source: ICON_PATH
         Button:
             id: btn_filemenu
             size_hint: None, 1
