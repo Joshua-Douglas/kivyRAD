@@ -1,7 +1,7 @@
 #:import ICON_PATH main.ICON_PATH
 #:set menubar_color (0.2, 0.2, 0.2, 1)
 
-<KivyDesignerRoot>:
+BoxLayout:
     orientation: 'vertical'
     # This BoxLayout and child layouts create the menubar
     BoxLayout: 
@@ -48,4 +48,21 @@
                     height: '24dp'
                     on_release: file_dropdown.select('Open Folder')
     BoxLayout: 
-        # Rest of the application goes here
+        # The main application including everything except toolbar
+        BoxLayout:
+            # Side toolbar. Set to fixed size of 275 dp 
+            # In the future we can allow the user to edit this
+            # by sliding a resize bar
+            size_hint: (None, 1)
+            width: '300dp'
+            Label:
+                text: 'Side Toolbar Future Pos.'
+        BoxLayout:
+            # Kivy Visualizer & File Editor
+            BoxLayout:
+                Label:
+                    background_color: 0.8,0.2,0.2,1
+                    text: 'Editor'
+            BoxLayout:
+                Label: 
+                    text: 'Visualizer'
