@@ -4,7 +4,7 @@
 BoxLayout:
     orientation: 'vertical'
     # This BoxLayout and child layouts create the menubar
-    BoxLayout: 
+    Toolbar: 
         size_hint: 1, None
         height: '24dp'
         canvas.before:
@@ -17,36 +17,9 @@ BoxLayout:
             size_hint: None, 1
             width: '30dp'
             source: ICON_PATH
-        Button:
-            id: btn_filemenu
+        FileToolbarGroup:
             size_hint: None, 1
-            # DropDown starts in opened state.
-            # Dismiss the dropdown when app starts
-            on_parent: file_dropdown.dismiss()
             width: '50dp'
-            text: 'File'
-            # Make the button transparent
-            background_color: 0,0,0,0
-            on_press: 
-                # Enable the color when button is pressed
-                self.background_color = 1,1,1,1
-                file_dropdown.open(self)
-            on_release:
-                self.background_color = 0,0,0,0
-            DropDown:
-                id: file_dropdown
-                # Allow the dropdown items to be wider than the parent
-                auto_width: False
-                Button:
-                    text: 'Open File'
-                    size_hint_y: None
-                    height: '24dp'
-                    on_release: file_dropdown.select('Open File')
-                Button: 
-                    text: 'Open Folder'
-                    size_hint_y: None
-                    height: '24dp'
-                    on_release: file_dropdown.select('Open Folder')
     BoxLayout: 
         # The main application including everything except toolbar
         BoxLayout:

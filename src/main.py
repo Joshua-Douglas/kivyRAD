@@ -21,6 +21,8 @@ class KivyDesignerApp(App):
         pass
 
 Factory.register('KivyVisualizer', module='kivyvisualizer')
+Factory.register('Toolbar', module='toolbar')
+Factory.register('FileToolbarGroup', module='toolbar')
 
 if __name__ == '__main__':
     KivyDesignerApp().run()
