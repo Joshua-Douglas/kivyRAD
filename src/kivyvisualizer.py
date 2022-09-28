@@ -6,11 +6,14 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 
 class KivyEditor(TextInput):
-    
+    # Note: I can use extras\highlight.py to syntax highlight the editor text!!
+    # Actualy codeinput.py provides this 'out of the box' functionality 
     def __init__(self):
         super().__init__()
 
 class KivyVisualizer(BoxLayout):
+    # kivy's parser.py has a 'proxyapp'. Can I use this approach instead of choosing to insert the root widget?
+    # There is also a 'Sandbox' widget that does the type of error catching we need...
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

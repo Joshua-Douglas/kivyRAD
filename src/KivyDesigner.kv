@@ -1,7 +1,7 @@
 #:import ICON_PATH main.ICON_PATH
 #:set menubar_color (0.2, 0.2, 0.2, 1)
 
-BoxLayout:
+RootWidget:
     orientation: 'vertical'
     # This BoxLayout and child layouts create the menubar
     Toolbar: 
@@ -20,6 +20,7 @@ BoxLayout:
         FileToolbarGroup:
             size_hint: None, 1
             width: '50dp'
+            on_open_file: root.change_filename(*args)
     BoxLayout: 
         # The main application including everything except toolbar
         BoxLayout:
