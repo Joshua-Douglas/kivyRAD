@@ -11,9 +11,7 @@ DATA_FOLDER = os.path.join(SRC_DIRECTORY.parent, 'data')
 ICON_PATH = os.path.join(DATA_FOLDER, 'kivy-icon-48.png')
 
 class RootWidget(BoxLayout):
-    def change_filename(self, instance, filename):
-        # update the toolbar's label to include this new filename
-        pass
+    pass
 
 class KivyDesignerApp(App):
     def build(self):

@@ -20,7 +20,7 @@ RootWidget:
         FileToolbarGroup:
             size_hint: None, 1
             width: '50dp'
-            on_open_file: root.change_filename(*args)
+            on_open_file: visualizer.open_file(*args)
     BoxLayout: 
         # The main application including everything except toolbar
         BoxLayout:
@@ -32,3 +32,4 @@ RootWidget:
             Label:
                 text: 'Side Toolbar Future Pos.'
         KivyVisualizer:
+            id: visualizer
