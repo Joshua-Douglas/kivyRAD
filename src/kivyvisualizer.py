@@ -25,7 +25,8 @@ class KivyVisualizer(BoxLayout):
         except Exception as e: 
             new_app = Label(text=str(e))
 
-        self.visualizer.add_widget(new_app)
+        if new_app:
+            self.visualizer.add_widget(new_app)
 
     def open_file(self, instance, new_filepath, new_filetxt):
         self.editor.text = new_filetxt
