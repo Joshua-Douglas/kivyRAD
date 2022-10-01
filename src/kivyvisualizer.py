@@ -6,9 +6,6 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 
 class KivyVisualizer(BoxLayout):
-    # kivy's parser.py has a 'proxyapp'. Can I use this approach instead of choosing to insert the root widget?
-    # There is also a 'Sandbox' widget that does the type of error catching we need...
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.editor = CodeInput(do_wrap=False)
