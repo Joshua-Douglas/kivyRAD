@@ -32,61 +32,26 @@ Factory.register('KivyVisualizer', module='kivyvisualizer')
 Factory.register('Toolbar', module='toolbar')
 Factory.register('FileToolbarGroup', module='toolbar')
 
+# Hot reloading kvlang for the root object is no issue at all
+# Reloading updated python code is a lot tricker. My attempts
+# to use importlib failed to update widget definitions. 
+# more research required.
+# I believe I need to reload the modules in the same original 
+# order, which will require caching a dependency graph
+from multiprocessing import Process, Queue
+from visualizationsubprocess import VisualizationSubprocess, HotReloadInstruction
+
 from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput 
 from kivy.uix.boxlayout import BoxLayout
-from kivy.clock import Clock 
-import multiprocessing
-from multiprocessing import Queue
+from kivy.uix.textinput import TextInput
+class ExampleRoot(Button):
+    pass
 
-class ChildAppStatic(App):
-    def __init__(self, instruction_queue, *kwargs):
-        self.instruction_queue = instruction_queue
-        Clock.schedule_interval(self.process_external_instructions, 0.1)
-        super().__init__(*kwargs)
-
+class ExampleChild(App):
     def build(self):
-        self.b = Button(text='Child')
-        return self.b
+        return ExampleRoot()
 
-    def process_external_instructions(self, arg):
-        if not self.instruction_queue.empty():
-            latest_instruction = self.instruction_queue.get()
-            self.b.text = latest_instruction
-
-class ChildAppDynamic(App):
-    def build(self):
-        self.b = Button(text='child')
-        return self.b 
-
-def runStaic(instruction_queue):
-    ChildAppStatic(instruction_queue).run()
-
-'''
-We could achieve the same thing by extending the ChildApp's type 
-definition to include an instruction pipeline class variable and 
-an instruction processing method and a scheduling method. 
-
-This might not be necessary though, since we could probaly just
-schedule and process the instructions outside of the app object. 
-We'll just need access to rebuild the app using either a kvstring 
-or updated python defintion. 
-
-Let's get the simpel text variant working first before trying to swap
-the window's widget.
-def process_external_instructions(self, queue):
-    if not queue.empty():
-        latest_instruction = queue.get()
-        self.b.text = latest_instruction
-
-def runDynamic(instruction_queue):
-    # Extend class type to add our instruction pipeline
-    ChildAppDynamic.instruction_queue = instruction_queue
-    ChildAppDynmaic.instruction_proc = 
-'''
-
-class ExampleApp(App):
-
+class UpdatedApp(App):
     def __init__(self, *kwargs):
         self.q = Queue()
         super().__init__(*kwargs)
@@ -102,12 +67,13 @@ class ExampleApp(App):
         return box
 
     def launchChild(self, button):
-        p = multiprocessing.Process(target=run,args=(self.q,))
+        p = Process(target=VisualizationSubprocess,args=(ExampleChild, self.q))
         p.start() 
 
     def textChanged(self, widget, text):
-        self.q.put(text)
+        # Just setup to trigger a reload with each keypress for now
+        self.q.put(HotReloadInstruction("visualizationsubprocess"))
 
 if __name__ == '__main__':
     #KivyDesignerApp().run()
-    ExampleApp().run()
+    UpdatedApp().run()
