@@ -1,12 +1,46 @@
-import importlib
+from threading import Thread
 from dataclasses import dataclass
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.app import App
+from functools import partial
+
+from kivy.uix.label import Label
 
 @dataclass
 class HotReloadInstruction:
-    py_module_to_reload: str 
+    kivy_build_str: str 
+
+class HotReloadApp(App):
+
+    def __init__(self, build_func, *kwargs): 
+        self.build_func = build_func
+        self.registered_build_files = set()
+        return super(HotReloadApp, self).__init__(*kwargs)
+
+    def build(self):
+        files_before_build = set(Builder.files[:])
+        new_root = self.build_func() 
+        files_after_build = set(Builder.files[:])
+        self.registered_build_files = files_after_build - files_before_build
+        return new_root
+  
+    def update(self, build_func=None):
+        if build_func:
+            self.build_func = build_func 
+
+        for file in self.registered_build_files:
+            Builder.unload_file(file)
+
+        for widget in Window.children[:]:
+            Window.remove_widget(widget)
+
+        try:
+            new_root = self.build_func()
+            Window.add_widget(new_root)
+        except Exception as builderr:
+            Window.add_widget(Label(text=str(builderr)))
 
 class VisualizationSubprocess:
     '''
@@ -17,67 +51,32 @@ class VisualizationSubprocess:
     updated kvlang string onto the processing queue. The
     processing queue should be populated with `HotReloadInstruction`s. 
     '''
-    def __init__(self, cls_reload_app, hot_reload_queue_ref):
-        # Note: Should probably add an error pipe so I can 
-        # send exceptions back 
-        if not isinstance(cls_reload_app, type):
-            raise ValueError(f'Type expected for cls_reload_app, but {type(cls_reload_app)} found')
-        
-        # Save the files registerd with the builder before constructing the 
-        # child app. This will allow us to unload each of the new application's
-        # files while hot reloading
-        self.builder_file_cache = Builder.files[:]
-        self.reload_app = cls_reload_app()
-
+    def __init__(self, cls_app_to_visualize, hot_reload_queue_ref):       
         self.reload_queue = hot_reload_queue_ref
-        Clock.schedule_interval(self.hot_reload, 0.1)
-
+        self.listen_task = Thread(target=self.listen_for_updates)
+        self.reload_app = HotReloadApp(build_func=cls_app_to_visualize().build)
+        
+        self.listen_task.start()
         self.reload_app.run()
 
-    def _unload_builder_files(self):
+    def __del__(self):
+        self.listen_task.join()
+
+    def listen_for_updates(self):
         '''
-        Unload all of the files loaded into the kivy Builder, 
-        except the default files stored in self.builder_file_cache.
-
-        Unloading the kivy files also unregisters the class from the
-        kivy Factory. Unloading works for registered strings too, since
-        strings are assigned a pseudo filename.
+        Wait until a hot reload request is available, then 
+        apply the hot reload. This method will block the 
+        thread it is executing in.
         '''
-        for file in Builder.files[:]:
-            if file not in self.builder_file_cache:
-                Builder.unload_file(file)
-        
-    def hot_reload(self, *args):
-        '''
-        Check the processing queue for reload instructions. 
-        Perform the first instruction in the queue, if available.
+        while True: 
+            next_instruction = self.reload_queue.get()
+            Clock.schedule_once(partial(self.hot_reload, next_instruction))
 
-        Note: In the future we could read to the last item and just
-        perform the last since each task overwrites the previous. 
-        '''
-        # Note: Checking an mulitprocessing queue will block the
-        # current thread. A return value of True from empty() does
-        # not guarentee that the queue will not block, since other users
-        # of the queue could empty it before our access. This class should
-        # be the only actor poping from the queue. Disable blocking
-        # and purposefully do not handle 'Empty' exceptions to enforce this.
-        if self.reload_queue.empty():
-            return 
+    def hot_reload(self, instruction, delta_time):
+        def b():
+            return Builder.load_string(instruction.kivy_build_str)
+        self.reload_app.update(build_func=b)
 
-        # Kivy does not provide any application reload functionality
-        # Clear the existing widgets and rebuild without closing
-        # the application window or exiting the event loop
-        for child in self.reload_app._app_window.children[:]:
-            self.reload_app._app_window.remove_widget(child)
-        self._unload_builder_files()
-        self.reload_app.built = False
-        self.reload_app.root = None
 
-        reload_instruction = self.reload_queue.get()
-        if reload_instruction.py_module_to_reload:
-            # Remove items from Factory? Or will reload handle?
-            module_to_reload = importlib.import_module(reload_instruction.py_module_to_reload)
-            importlib.reload(module_to_reload)
 
-        self.reload_app._run_prepare()
 
