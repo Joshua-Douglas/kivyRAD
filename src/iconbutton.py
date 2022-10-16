@@ -37,26 +37,39 @@ class IconButton(Button):
         y_sf = (self.height - 2 * self.height_padding) / svg_height
         return x_sf, y_sf
             
-    def draw_svg(self, *args):
-        self.svg.source = self.source 
+    def _update_svg_src(self):
+        self.svg.source = self.source
+
+    def _update_svg_size(self):
         x_sf, y_sf = self._calc_scalefactor(self.svg) 
         self.scale.x = x_sf 
         self.scale.y = y_sf 
         self.iscale.x = 1/x_sf 
         self.iscale.y = 1/y_sf
+
+    def _update_svg_pos(self, *args):
         self.translation.x = self.x 
         self.translation.y = self.y 
+
         self.itranslation.x = -self.x 
-        self.itranslation.y = -self.y 
+        self.itranslation.y = -self.y
+
+    def draw_svg(self, *args):
+        # Must update the svg src before the 
+        # size update, since the scale factor
+        # depends on the svg size
+        self._update_svg_src()
+        self._update_svg_size()
+        self._update_svg_pos()
 
     def on_source(self, *args):
-        self.draw_svg()
+        self._update_svg_src()
 
     def on_pos(self, *args):
-        self.draw_svg()
+        self._update_svg_pos()
 
     def on_size(self, *args):
-        self.draw_svg()
+        self._update_svg_size()
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp
