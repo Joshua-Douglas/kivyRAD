@@ -3,26 +3,29 @@ from kivy.uix.button import Button
 from kivy.graphics.svg import Svg
 from kivy.properties import StringProperty, ReferenceListProperty, NumericProperty
 from kivy.clock import Clock
-from kivy.graphics import *
+from kivy.graphics import Translate, Scale
 
-# I can load the svg into a fbo and then apply the fbo properties like 
-# the texture to my current canvas. Fbo is an 'offscreen' canvas
 class IconButton(Button):
     '''
-    A standard kivy button that can design high resolution, rescalable
+    A standard kivy button that can display high resolution, rescalable
     SVG icons. 
     '''
     source = StringProperty('')
 
     width_padding = NumericProperty(0)
     height_padding = NumericProperty(0)
-    padding = ReferenceListProperty([width_padding, height_padding])
+    svg_padding = ReferenceListProperty(width_padding, height_padding)
     '''
     Padding between the button borders and the drawn svg image, in 
     pixels. 
     '''
     def __init__(self, **kwargs):
         super(IconButton, self).__init__(**kwargs)
+        # Add the drawing and translation instructions to the 
+        # canvas. Store references to the instructions to 
+        # allow updates as necessary. Translation and scaling
+        # is necessary to transform the SVG from global coords
+        # to button coords.
         with self.canvas.after:
             self.translation = Translate()
             self.scale = Scale()
@@ -30,31 +33,44 @@ class IconButton(Button):
             self.iscale = Scale()
             self.itranslation = Translate()
         Clock.schedule_once(self.draw_svg)
-
-    def _calc_scalefactor(self, svg_instruct):
-        svg_width, svg_height = svg_instruct.width, svg_instruct.height
-        x_sf = (self.width - 2 * self.width_padding) / svg_width 
-        y_sf = (self.height - 2 * self.height_padding) / svg_height
-        return x_sf, y_sf
-            
+           
     def _update_svg_src(self):
+        '''Update the svg source, and 
+        reload the svg file.
+        '''
         self.svg.source = self.source
 
     def _update_svg_size(self):
-        x_sf, y_sf = self._calc_scalefactor(self.svg) 
-        self.scale.x = x_sf 
-        self.scale.y = y_sf 
-        self.iscale.x = 1/x_sf 
-        self.iscale.y = 1/y_sf
+        '''Update scaling instruction.
+        Scale the svg to fill the entire button
+        area, minus the padding area. Also set the 
+        inverse sacling to prevent impacting downstream
+        instructions. 
+        '''
+        svg_width, svg_height = self.svg.width, self.svg.height
+        x_sf = (self.width - 2 * self.width_padding) / svg_width 
+        y_sf = (self.height - 2 * self.height_padding) / svg_height
+        self.scale.xyz = x_sf, y_sf, 1
+        # Avoid divide by zero error using short-circuiting logic
+        # Note: inverse scaling if the user specifies an overly
+        # large padding is fine. 
+        self.iscale.x = x_sf and 1/x_sf
+        self.iscale.y = y_sf and 1/y_sf
 
     def _update_svg_pos(self, *args):
-        self.translation.x = self.x 
-        self.translation.y = self.y 
-
-        self.itranslation.x = -self.x 
-        self.itranslation.y = -self.y
+        '''Update translation instruction. 
+        Translate the svg instruction to the button's 
+        origin plus padding. Also set the inverse translation
+        to prevent impacting downstream instructions. 
+        '''
+        x_trans, y_tras = self.x + self.width_padding, self.y + self.height_padding
+        self.translation.xy = x_trans, y_tras
+        self.itranslation.xy = -x_trans, -y_tras
 
     def draw_svg(self, *args):
+        '''Refresh each of the canvas instructions to 
+        draw the svg image on the button.
+        '''
         # Must update the svg src before the 
         # size update, since the scale factor
         # depends on the svg size
@@ -79,7 +95,9 @@ BoxLayout:
     Button:
         text: 'first'
     IconButton:
-        source: "C:\\Users\\joshu\\source\\repos\\kivydesigner\\src\\pumk.svg"
+        source: ".\\data\\blue.svg"
+        text: "hidden"
+        svg_padding: 25, 50
     Button:
         text: 'second'
     '''
