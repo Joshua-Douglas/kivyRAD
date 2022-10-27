@@ -1,9 +1,11 @@
 
+from xml.dom.minidom import Element
 from kivy.uix.button import Button
 from kivy.graphics.svg import Svg
 from kivy.properties import StringProperty, ReferenceListProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.graphics import Translate, Scale
+from xml.etree.ElementTree import ElementTree, fromstring, XML
 
 class IconButton(Button):
     '''
@@ -35,10 +37,20 @@ class IconButton(Button):
         Clock.schedule_once(self.draw_svg)
            
     def _update_svg_src(self):
-        '''Update the svg source, and 
-        reload the svg file.
-        '''
-        self.svg.source = self.source
+        '''Update the svg source, and reload the svg file.'''
+        # SVG instruction must have a valid file. If file is invalid, 
+        # then manually clear the SVG instruction tree by passing 
+        # an empty ElementTree() 
+        if self.source:
+            self.svg.source = self.source
+        else:
+            self.clear_svg()
+
+    def clear_svg(self):
+        self.source = ''
+        empty_root = XML("<svg width='1' height='1'></svg>")
+        empty_tree = ElementTree(empty_root)
+        self.svg.set_tree(empty_tree)
 
     def _update_svg_size(self):
         '''Update scaling instruction.
@@ -48,10 +60,10 @@ class IconButton(Button):
         instructions. 
         '''
         svg_width, svg_height = self.svg.width, self.svg.height
-        x_sf = (self.width - 2 * self.width_padding) / svg_width 
-        y_sf = (self.height - 2 * self.height_padding) / svg_height
+        # Avoid divide by zero errors using short-circuiting logic
+        x_sf = svg_width and (self.width - 2 * self.width_padding) / svg_width 
+        y_sf = svg_height and (self.height - 2 * self.height_padding) / svg_height
         self.scale.xyz = x_sf, y_sf, 1
-        # Avoid divide by zero error using short-circuiting logic
         # Note: inverse scaling if the user specifies an overly
         # large padding is fine. 
         self.iscale.x = x_sf and 1/x_sf
@@ -86,20 +98,3 @@ class IconButton(Button):
 
     def on_size(self, *args):
         self._update_svg_size()
-
-if __name__ == '__main__':
-    from kivy.app import runTouchApp
-    from kivy.lang import Builder
-    ex_kv = r'''
-BoxLayout:
-    Button:
-        text: 'first'
-    IconButton:
-        source: ".\\data\\blue.svg"
-        text: "hidden"
-        svg_padding: 25, 50
-    Button:
-        text: 'second'
-    '''
-    root = Builder.load_string(ex_kv)
-    runTouchApp(root)
