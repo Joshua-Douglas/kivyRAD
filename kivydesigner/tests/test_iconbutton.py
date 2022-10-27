@@ -1,10 +1,10 @@
-from kivy.tests.common import GraphicUnitTest
 from kivy.uix.button import Button
-
 from kivydesigner.uix.iconbutton import IconButton
 from kivy.lang.builder import Builder
 
-class TestIconButton(GraphicUnitTest):
+from kivydesigner.tests.common import KDGraphicUnitTest
+
+class TestIconButton(KDGraphicUnitTest):
 
     def test_no_svg(self):
         '''Test that an icon button without any svg image 

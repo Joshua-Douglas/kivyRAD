@@ -85,7 +85,6 @@ class KivyDesignerApp(App):
         self.visualization_instructions.put(reload_instruction) 
 
 Factory.register('RootWidget', module='main')
-Factory.register('KivyVisualizer', module='kivyvisualizer')
 
 if __name__ == '__main__':
     KivyDesignerApp().run()
