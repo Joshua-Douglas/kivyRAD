@@ -1,7 +1,4 @@
-from kivy.uix.button import Button
-from kivydesigner.uix.iconbutton import IconButton
 from kivy.lang.builder import Builder
-
 from kivydesigner.tests.common import KDGraphicUnitTest
 
 class TestIconButton(KDGraphicUnitTest):
@@ -20,6 +17,5 @@ BoxLayout:
     Button:
         text: 'second'
     '''
-        import pytest
         root = Builder.load_string(ex_kv)
         self.render(root)
