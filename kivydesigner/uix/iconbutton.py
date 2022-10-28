@@ -1,11 +1,10 @@
-
-from xml.dom.minidom import Element
 from kivy.uix.button import Button
 from kivy.graphics.svg import Svg
 from kivy.properties import StringProperty, ReferenceListProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.graphics import Translate, Scale
-from xml.etree.ElementTree import ElementTree, fromstring, XML
+from xml.etree.ElementTree import ElementTree, XML
+
 
 class IconButton(Button):
     '''
@@ -22,12 +21,12 @@ class IconButton(Button):
     pixels. 
     '''
     def __init__(self, **kwargs):
-        super(IconButton, self).__init__(**kwargs)
         # Add the drawing and translation instructions to the 
         # canvas. Store references to the instructions to 
         # allow updates as necessary. Translation and scaling
         # is necessary to transform the SVG from global coords
         # to button coords.
+        super(IconButton, self).__init__(**kwargs)
         with self.canvas.after:
             self.translation = Translate()
             self.scale = Scale()

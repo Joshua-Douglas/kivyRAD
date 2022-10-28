@@ -1,9 +1,11 @@
 
 import os 
-import os.path
+import os.path as path
 os.environ['KIVY_UNITTEST_SCREENSHOTS'] = '1'
 
 from kivy.tests.common import GraphicUnitTest
+
+TEST_DATA_DIR = path.join(path.dirname(__file__), 'test_data')
 
 class KDGraphicUnitTest(GraphicUnitTest):
 
@@ -20,5 +22,5 @@ class KDGraphicUnitTest(GraphicUnitTest):
     def setUp(self):
         '''Override result directory to point to test_data.'''
         import os.path as path
-        self.results_dir = path.join(path.dirname(__file__), 'test_data')
+        self.results_dir = TEST_DATA_DIR
         super(KDGraphicUnitTest, self).setUp()
