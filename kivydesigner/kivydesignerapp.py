@@ -6,10 +6,10 @@ from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
-from visualizationsubprocess import VisualizationSubprocess
+from kivydesigner.visualizationsubprocess import VisualizationSubprocess
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
-DATA_FOLDER = os.path.join(SRC_DIRECTORY.parent, 'data') 
+DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
 ICON_PATH = os.path.join(DATA_FOLDER, 'kivy-icon-48.png')
 
 class RootWidget(BoxLayout):
@@ -83,11 +83,3 @@ class KivyDesignerApp(App):
         if not self._is_visualizing():
             self._start_visualizing()
         self.visualization_instructions.put(reload_instruction) 
-
-Factory.register('RootWidget', module='main')
-Factory.register('KivyVisualizer', module='kivyvisualizer')
-Factory.register('Toolbar', module='toolbar')
-Factory.register('FileToolbarGroup', module='toolbar')
-
-if __name__ == '__main__':
-    KivyDesignerApp().run()
