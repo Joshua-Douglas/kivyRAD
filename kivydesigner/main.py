@@ -9,7 +9,7 @@ import multiprocessing
 from visualizationsubprocess import VisualizationSubprocess
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
-DATA_FOLDER = os.path.join(SRC_DIRECTORY.parent, 'data') 
+DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
 ICON_PATH = os.path.join(DATA_FOLDER, 'kivy-icon-48.png')
 
 class RootWidget(BoxLayout):
@@ -87,4 +87,5 @@ class KivyDesignerApp(App):
 Factory.register('RootWidget', module='main')
 
 if __name__ == '__main__':
+    import __init__
     KivyDesignerApp().run()
