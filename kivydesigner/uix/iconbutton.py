@@ -13,12 +13,14 @@ class IconButton(Button):
     '''
     source = StringProperty('')
 
-    width_padding = NumericProperty(0)
-    height_padding = NumericProperty(0)
-    svg_padding = ReferenceListProperty(width_padding, height_padding)
+    svg_padding_x = NumericProperty(0)
+    svg_padding_y = NumericProperty(0)
+    svg_padding = ReferenceListProperty(svg_padding_x, svg_padding_y)
     '''
     Padding between the button borders and the drawn svg image, in 
-    pixels. 
+    pixels. Specifying a padding value greater than the respective 
+    dimension will cause the SVG image to invert. Specifying a 
+    negative padding value will stretch the image. 
     '''
     def __init__(self, **kwargs):
         # Add the drawing and translation instructions to the 
@@ -60,8 +62,8 @@ class IconButton(Button):
         '''
         svg_width, svg_height = self.svg.width, self.svg.height
         # Avoid divide by zero errors using short-circuiting logic
-        x_sf = svg_width and (self.width - 2 * self.width_padding) / svg_width 
-        y_sf = svg_height and (self.height - 2 * self.height_padding) / svg_height
+        x_sf = svg_width and (self.width - 2 * self.svg_padding_x) / svg_width 
+        y_sf = svg_height and (self.height - 2 * self.svg_padding_y) / svg_height
         self.scale.xyz = x_sf, y_sf, 1
         # Note: inverse scaling if the user specifies an overly
         # large padding is fine. 
@@ -74,7 +76,7 @@ class IconButton(Button):
         origin plus padding. Also set the inverse translation
         to prevent impacting downstream instructions. 
         '''
-        x_trans, y_tras = self.x + self.width_padding, self.y + self.height_padding
+        x_trans, y_tras = self.x + self.svg_padding_x, self.y + self.svg_padding_y
         self.translation.xy = x_trans, y_tras
         self.itranslation.xy = -x_trans, -y_tras
 
@@ -97,3 +99,17 @@ class IconButton(Button):
 
     def on_size(self, *args):
         self._update_svg_size()
+
+    def on_svg_padding(self, *args):
+        self._update_svg_src()
+        self._update_svg_pos()
+        self._update_svg_size()
+
+if __name__ == '__main__':
+    import sys 
+    from kivy.app import runTouchApp
+
+    btn = IconButton()
+    if len(sys.argv) > 1:
+        btn.source = sys.argv[1]
+    runTouchApp(btn)

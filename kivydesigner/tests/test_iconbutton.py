@@ -38,8 +38,6 @@ BoxLayout:
         images, using object creation.
         '''
         svg_file = path.join(TEST_DATA_DIR, 'pumk.svg')
-        # Force forward slash for kvlang
-        svg_file = Path(svg_file).as_posix()
         root = IconButton()
         root.source = svg_file
         self.render(root)
@@ -48,4 +46,35 @@ BoxLayout:
         '''Test that the SVG button width padding and height padding
         add spacing between the SVG and the edge of the button. 
         '''
-        pass
+        svg_file = path.join(TEST_DATA_DIR, 'blue.svg')
+        root = IconButton()
+        root.source = svg_file
+        # Test without padding
+        self.render(root)
+        # Test only height padding
+        root.svg_padding_y = 250 
+        root.svg_padding_x = 0
+        self.render(root)
+        # Test only width padding 
+        root.svg_padding_x = 150 
+        root.svg_padding_y = 0
+        self.render(root)
+        # Test both padding 
+        root.svg_padding = (70, 170)
+        self.render(root)
+
+    def test_padding_edge_cases(self):
+        '''Test nontraditonal padding values supported by 
+        the IconButton. Negative paddings will
+        stretch the svg. Padding values greater than the 
+        length will invert the image.
+        '''
+        svg_file = path.join(TEST_DATA_DIR, 'pumk.svg')
+        root = IconButton()
+        root.source = svg_file
+        root.svg_padding = (-100, -200)
+        # Expect stretched pumpkin 
+        self.render(root)
+        root.svg_padding = (root.width+75, root.height+75)
+        # Expect inverted image
+        self.render(root)
