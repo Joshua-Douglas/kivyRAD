@@ -6,5 +6,3 @@ import kivydesigner.tests.common
 
 import os 
 import sys 
-
-sys.path.append(os.path.abspath('..'))
