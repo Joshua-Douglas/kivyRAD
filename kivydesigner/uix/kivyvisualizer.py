@@ -2,7 +2,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
 from kivy.app import App
 
-from visualizationsubprocess import HotReloadInstruction
+from kivydesigner.visualizationsubprocess import HotReloadInstruction
 
 class KivyVisualizer(BoxLayout):
     def __init__(self, **kwargs):

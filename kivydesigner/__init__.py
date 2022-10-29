@@ -1,1 +1,1 @@
-import uix.register_uix
+import kivydesigner.register_uix

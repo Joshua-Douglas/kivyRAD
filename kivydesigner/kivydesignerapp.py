@@ -6,7 +6,7 @@ from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
-from visualizationsubprocess import VisualizationSubprocess
+from kivydesigner.visualizationsubprocess import VisualizationSubprocess
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
 DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
@@ -83,9 +83,3 @@ class KivyDesignerApp(App):
         if not self._is_visualizing():
             self._start_visualizing()
         self.visualization_instructions.put(reload_instruction) 
-
-Factory.register('RootWidget', module='main')
-
-if __name__ == '__main__':
-    import __init__
-    KivyDesignerApp().run()
