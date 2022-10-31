@@ -23,7 +23,14 @@ def stopTouchApp():
     # ensure any restart will not break anything later.
     EventLoop.input_events = []
 
-kivy.base.stopTouchApp = stopTouchApp
+#kivy.base.stopTouchApp = stopTouchApp
+
+def exit(self):
+    '''Close the main loop and close the window.'''
+    self.close()
+    #if self.window:
+    #    self.window.close()
+kivy.base.EventLoop.exit = exit
 from kivy.app import App
 
 
@@ -32,17 +39,22 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 
 app = None
+cntr = 0
 
 def do_swap(instance):
     global app
+    global cntr
+    b = isinstance(app, App1)
     app.stop()
     def do_run():
-        if isinstance(app, App1):
-            app = App1()
-        else:
+        global cntr
+        if cntr % 2 == 0:
             app = App2()
+        else:
+            app = App1()
+        cntr += 1
         app.run()
-    app.run()
+    do_run()
     
 class App1(App):
 

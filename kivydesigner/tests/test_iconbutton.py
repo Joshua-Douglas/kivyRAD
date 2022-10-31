@@ -78,3 +78,7 @@ BoxLayout:
         root.svg_padding = (root.width+75, root.height+75)
         # Expect inverted image
         self.render(root)
+
+    def test_app(self):
+        from kivy.app import App
+        self.render(App())
