@@ -6,7 +6,7 @@ from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
-from kivydesigner.visualizationsubprocess import VisualizationSubprocess
+from kivydesigner.visualizationsubprocess import VisualizationSubprocess, HotReloadInstructionQueue
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
 DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
@@ -32,7 +32,7 @@ class KivyDesignerApp(App):
     '''
     def build(self):
         self.title = 'Kivy Designer'
-        self.visualization_instructions = multiprocessing.Queue()
+        self.visualization_instructions = HotReloadInstructionQueue()
         self.visualization_subprocess = None
         root_widget = Builder.load_file(os.path.join(SRC_DIRECTORY, 'KivyDesigner.kv'))
         return root_widget
@@ -79,7 +79,7 @@ class KivyDesignerApp(App):
         new_process.start()
         self.visualization_subprocess = new_process
 
-    def hot_reload(self, reload_instruction):
+    def hot_reload(self, new_kv_str):
         if not self._is_visualizing():
             self._start_visualizing()
-        self.visualization_instructions.put(reload_instruction) 
+        self.visualization_instructions.reload_kvstring(new_kv_str) 
