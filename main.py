@@ -1,3 +1,3 @@
 if __name__ == '__main__':
-    from kivydesigner.kivydesignerapp import KivyDesignerApp
+    from kivydesigner.kivydesigner import KivyDesignerApp
     KivyDesignerApp().run()

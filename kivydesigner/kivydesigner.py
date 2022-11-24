@@ -2,11 +2,10 @@ import os
 from pathlib import Path
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.factory import Factory 
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
-from kivydesigner.visualizationsubprocess import VisualizationSubprocess
+from kivydesigner.hotreload import run_visualization_app, HotReloadInstructionQueue
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
 DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
@@ -32,7 +31,7 @@ class KivyDesignerApp(App):
     '''
     def build(self):
         self.title = 'Kivy Designer'
-        self.visualization_instructions = multiprocessing.Queue()
+        self.visualization_instructions = HotReloadInstructionQueue()
         self.visualization_subprocess = None
         root_widget = Builder.load_file(os.path.join(SRC_DIRECTORY, 'KivyDesigner.kv'))
         return root_widget
@@ -43,7 +42,8 @@ class KivyDesignerApp(App):
         designer is stopped.
         '''
         if self._is_visualizing():
-            self.visualization_subprocess.terminate()
+            self.visualization_instructions.stop_reload()
+            self.visualization_subprocess.join()
 
     def _is_visualizing(self):
         '''
@@ -66,20 +66,22 @@ class KivyDesignerApp(App):
 
     def _start_visualizing(self):
         '''
-        Run the VisualizationSubprocess on a new child
-        process. VisualizationSubprocess will create 
-        and visualize cls_app_to_visualize. Hot reloads
-        can be performed by putting reload instructions
+        Run the VisualizationSubprocess on a new child process. 
+        Hot reloads can be performed by putting reload instructions
         onto the visualization_instructions queue. 
         '''
+        # We are taking special care to avoid creating VisualizationSubprocess within
+        # this interpreter session to avoid initializing the VisualizationSubprocess 
+        # app using the KivyDesignerApp config. Kivy's initialization relies on global 
+        # singletons, so mixing the environments will cause the visualization to fail.
         new_process = multiprocessing.Process(
-            target=VisualizationSubprocess,
+            target=run_visualization_app,
             args=(self.visualization_instructions,)
         )
         new_process.start()
         self.visualization_subprocess = new_process
 
-    def hot_reload(self, reload_instruction):
+    def hot_reload(self, new_kv_str):
         if not self._is_visualizing():
             self._start_visualizing()
-        self.visualization_instructions.put(reload_instruction) 
+        self.visualization_instructions.reload_kvstring(new_kv_str) 
