@@ -104,5 +104,5 @@ def run_visualization_app(hot_reload_queue: HotReloadInstructionQueue):
         next_instruction = hot_reload_queue.next_instruction()
         if isinstance(next_instruction, KvStrInstruction):
             _visualize(KvBuilderApp(kv_str=next_instruction.kv_str))
-        elif next_instruction:
+        elif next_instruction and not isinstance(next_instruction, StopInstruction):
             raise ValueError("Hot Reload type not recognized")

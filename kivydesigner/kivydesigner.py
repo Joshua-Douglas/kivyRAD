@@ -43,7 +43,7 @@ class KivyDesignerApp(App):
         '''
         if self._is_visualizing():
             self.visualization_instructions.stop_reload()
-            self.visualization_subprocess.terminate()
+            self.visualization_subprocess.join()
 
     def _is_visualizing(self):
         '''
