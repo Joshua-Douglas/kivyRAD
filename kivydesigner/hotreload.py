@@ -99,10 +99,17 @@ def run_visualization_app(hot_reload_queue: HotReloadInstructionQueue):
     See HotReloadInstructionQueue for full instruction set. 
     '''
     Clock.schedule_interval(partial(_visualization_update, hot_reload_queue), 0)   
-    next_instruction = None 
+    while hot_reload_queue.empty():
+        continue 
+
+    next_instruction = None
     while not isinstance(next_instruction, StopInstruction):
         next_instruction = hot_reload_queue.next_instruction()
         if isinstance(next_instruction, KvStrInstruction):
             _visualize(KvBuilderApp(kv_str=next_instruction.kv_str))
         elif next_instruction and not isinstance(next_instruction, StopInstruction):
             raise ValueError("Hot Reload type not recognized")
+
+        # If no instruction is available, but we've exited _visualize, then the 
+        # user manually stopped the visualized application. 
+        next_instruction = next_instruction or StopInstruction()
