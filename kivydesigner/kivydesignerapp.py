@@ -76,7 +76,7 @@ class KivyDesignerApp(App):
         # app using the KivyDesignerApp config. Kivy's initialization relies on global 
         # singletons, so mixing the environments will cause the visualization to fail.
         new_process = multiprocessing.Process(
-            target=VisualizationSubprocess,
+            target=VisualizationSubprocess.start,
             args=(self.visualization_instructions,)
         )
         new_process.start()

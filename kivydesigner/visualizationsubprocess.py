@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 from kivy.clock import Clock
-from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.app import App
 from kivy.base import EventLoop, stopTouchApp
 from kivy.config import Config
-        
-
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
+
 from multiprocessing import Queue
 from queue import Empty
+from functools import partial
 
 @dataclass 
 class WidgetInstruction:
@@ -42,6 +41,9 @@ class HotReloadInstructionQueue:
     def stop_reload(self):
         self.queue.put(StopInstruction())
 
+    def empty(self):
+        return self.queue.empty()
+
     def next_instruction(self):
         try:
             return self.queue.get(block=False)
@@ -71,41 +73,30 @@ class VisualizationSubprocess:
     processing queue should be populated with `HotReloadInstruction`s. 
     '''
 
-    def __init__(self, hot_reload_queue_ref: HotReloadInstructionQueue): 
-        self.reload_queue = hot_reload_queue_ref
-        self.current_instruction = None
-
-        # on_window_flip will listen for hot reload instructions
-        # and stop the application any time an instruction is received
-        Window.bind(on_flip=self.on_window_flip)
-        self.start()
-
-    def __del__(self):
-        Window.unbind(on_flip=self.on_window_flip)
-
-    def start(self):
-        self.visualize(KvBuilderApp(kv_str='Widget'))       
-        while not isinstance(self.current_instruction, StopInstruction):
-            if isinstance(self.current_instruction, KvStrInstruction):
-                self.visualize(KvBuilderApp(kv_str=self.current_instruction.kv_str))
-            elif self.current_instruction:
+    @classmethod
+    def start(cls, hot_reload_queue: HotReloadInstructionQueue):
+        Clock.schedule_interval(partial(cls.visualization_update, hot_reload_queue), 0)   
+        next_instruction = None 
+        while not isinstance(next_instruction, StopInstruction):
+            next_instruction = hot_reload_queue.next_instruction()
+            if isinstance(next_instruction, KvStrInstruction):
+                cls.visualize(KvBuilderApp(kv_str=next_instruction.kv_str))
+            elif next_instruction:
                 raise ValueError("Hot Reload type not recognized")
 
-    def stop(self):
-        self.reload_queue.stop_reload()
-
-    def on_window_flip(self, window):
-        self.current_instruction = self.reload_queue.next_instruction() 
-        if self.current_instruction:
+    @staticmethod
+    def visualization_update(reload_queue, dt):
+        if not reload_queue.empty():
             EventLoop.close()
+        if EventLoop.status == 'started':
+            # Restarting the application doesn't automatically refresh the window
+            # since we are using a preexisting window instance. Force the refresh.
+            win = EventLoop.window
+            if win and win.canvas:
+                win.canvas.ask_update()
 
-    def _force_refresh(self, *largs):
-        '''Force a refresh of the window canvas.'''
-        win = EventLoop.window
-        if win and win.canvas:
-            win.canvas.ask_update()
-
-    def visualize(self, app):
+    @classmethod
+    def visualize(cls, app):
         '''kivy is designed to run a single application during an interpreter
         session. To run multiple application instances we need to do some
         special setup and teardown to ensure kivy's global variables are 
@@ -114,22 +105,18 @@ class VisualizationSubprocess:
         Setup kivy, run the app, and teardown. See setUp() and tearDown()
         for more information.
         '''
-        self.setUp()
-
+        cls.setUp()
         try:
-            # Restarting the application doesn't automatically refresh the window
-            # since we are using a preexisting window instance. Force the refresh.
-            Clock.schedule_interval(self._force_refresh, 0)
             app.run()
         finally:
-            Clock.unschedule(self._force_refresh)
-
-        self.tearDown()
-
-    def tearDown(self):
+            cls.tearDown()
+   
+    @staticmethod
+    def tearDown():
         stopTouchApp()
 
-    def setUp(self):
+    @staticmethod
+    def setUp():
         # Currently the kivy input must be removed before continually 
         # reinstantiating the application. The windows providers, and 
         # possibly other provides for other platforms, currently 
