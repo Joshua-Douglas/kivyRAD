@@ -86,15 +86,12 @@ class VisualizationSubprocess:
 
             if isinstance(self.current_instruction, StopInstruction):
                 break 
-            elif isinstance(self.current_instruction , KvStrInstruction):
-                self._reload_kv_str(self.current_instruction.kv_str)
-            else: #To-Do: Add handlers for widget loading and kv file loading
+            elif isinstance(self.current_instruction, KvStrInstruction):
+                self.visualize(KvBuilderApp(kv_str=self.current_instruction.kv_str))
+            else:
                 raise ValueError("Hot Reload type not recognized")
 
         Window.unbind(on_flip=self.on_window_flip)
-
-    def _reload_kv_str(self, kv_str):
-        self.visualize(KvBuilderApp(kv_str=kv_str))
 
     def on_window_flip(self, window):
         self.current_instruction = self.reload_queue.next_instruction() 
@@ -102,8 +99,7 @@ class VisualizationSubprocess:
             EventLoop.close()
 
     def _force_refresh(self, *largs):
-        # this prevent in some case to be stuck if the screen doesn't refresh
-        # and we wait for a number of self.framecount that never goes down
+        '''Force a refresh of the window canvas.'''
         win = EventLoop.window
         if win and win.canvas:
             win.canvas.ask_update()
@@ -120,18 +116,16 @@ class VisualizationSubprocess:
         self.setUp()
 
         try:
+            # Restarting the application doesn't automatically refresh the window
+            # since we are using a preexisting window instance. Force the refresh.
             Clock.schedule_interval(self._force_refresh, 1)
             app.run()
         finally:
             Clock.unschedule(self._force_refresh)
 
-        self.tearDown(fake=True)
+        self.tearDown()
 
-    def tearDown(self, fake=False):
-        '''When the visualization is finished, stop the application, and unbind our
-        current flip callback.
-        '''
-        self.clear_window_and_event_loop()
+    def tearDown(self):
         stopTouchApp()
 
     def setUp(self):
@@ -144,25 +138,3 @@ class VisualizationSubprocess:
         # input in the visualized window. 
         for items in Config.items('input'):
             Config.remove_option('input', items[0])
-
-        # ensure our window is correctly created
-        Window.create_window()
-        Window.register()
-        Window.initialized = True
-        Window.close = lambda *s: None
-        self.clear_window_and_event_loop()
-
-    def clear_window_and_event_loop(self):
-        # Is removing all the children strictly necessary? 
-        # stopTouchApp might do this?
-        for child in Window.children[:]:
-            Window.remove_widget(child)
-        Window.canvas.before.clear()
-        Window.canvas.clear()
-        Window.canvas.after.clear()
-        EventLoop.touches.clear()
-        for post_proc in EventLoop.postproc_modules:
-            if hasattr(post_proc, 'touches'):
-                post_proc.touches.clear()
-            elif hasattr(post_proc, 'last_touches'):
-                post_proc.last_touches.clear()
