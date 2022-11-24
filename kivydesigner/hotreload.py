@@ -5,18 +5,11 @@ from kivy.app import App
 from kivy.base import EventLoop, stopTouchApp
 from kivy.config import Config
 from kivy.uix.label import Label
-from kivy.uix.widget import Widget
 
 from multiprocessing import Queue
 from queue import Empty
 from functools import partial
 
-@dataclass 
-class WidgetInstruction:
-    widget_type: type[Widget]
-@dataclass 
-class KvFileInstruction:
-    kv_filepath: str 
 @dataclass 
 class KvStrInstruction:
     kv_str: str 
@@ -29,14 +22,8 @@ class HotReloadInstructionQueue:
     def __init__(self):
         self.queue = Queue()
 
-    def reload_kvfile(self, kv_filepath: str):
-        self.queue.put(KvStrInstruction(kv_filepath))
-    
     def reload_kvstring(self, kv_build_string: str):
         self.queue.put(KvStrInstruction(kv_build_string))
-
-    def reload_widget(self, widget_cls: type[Widget]):
-        self.queue.put(WidgetInstruction(widget_cls))
 
     def stop_reload(self):
         self.queue.put(StopInstruction())

@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.factory import Factory 
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
