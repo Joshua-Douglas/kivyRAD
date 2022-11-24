@@ -63,66 +63,59 @@ class KvBuilderApp(App):
             root = Label(text=str(builderr))
         return root
 
-class VisualizationSubprocess:
+def _visualization_update(reload_queue, dt):
+    if not reload_queue.empty():
+        EventLoop.close()
+    if EventLoop.status == 'started':
+        # Restarting the application doesn't automatically refresh the window
+        # since we are using a preexisting window instance. Force the refresh.
+        win = EventLoop.window
+        if win and win.canvas:
+            win.canvas.ask_update()
+
+def _tearDown():
+    stopTouchApp()
+
+def _setUp():
+    # Currently the kivy input must be removed before continually 
+    # reinstantiating the application. The windows providers, and 
+    # possibly other provides for other platforms, currently 
+    # throw a 'ArugmentError' during stopTouchApp because the input
+    # providers are created without a window handle. If we can identify
+    # why the providers are incorrectly recreated then we can support 
+    # input in the visualized window. 
+    for items in Config.items('input'):
+        Config.remove_option('input', items[0])
+
+def _visualize(app):
+    '''kivy is designed to run a single application during an interpreter
+    session. To run multiple application instances we need to do some
+    special setup and teardown to ensure kivy's global variables are 
+    properly initialized and finalized. 
+    
+    Setup kivy, run the app, and teardown. See setUp() and tearDown()
+    for more information.
     '''
-    This class is designed to perform a hot reload kivy 
-    applications that are executing in a subprocess. 
+    _setUp()
+    try:
+        app.run()
+    finally:
+        _tearDown()
 
-    The parent process can signal a reload by pushing a
-    hot reload instruction onto the processing queue. The
-    processing queue should be populated with `HotReloadInstruction`s. 
+def run_visualization_app(hot_reload_queue: HotReloadInstructionQueue):
     '''
+    Run a hot reload app, controlled by the hot_reload_queue. 
+    The hot reload app is designed to run as the only kivy app within the 
+    interpreter session. This method will block the thread, so it 
+    must be run in a separate thread or process.
 
-    @classmethod
-    def start(cls, hot_reload_queue: HotReloadInstructionQueue):
-        Clock.schedule_interval(partial(cls.visualization_update, hot_reload_queue), 0)   
-        next_instruction = None 
-        while not isinstance(next_instruction, StopInstruction):
-            next_instruction = hot_reload_queue.next_instruction()
-            if isinstance(next_instruction, KvStrInstruction):
-                cls.visualize(KvBuilderApp(kv_str=next_instruction.kv_str))
-            elif next_instruction:
-                raise ValueError("Hot Reload type not recognized")
-
-    @staticmethod
-    def visualization_update(reload_queue, dt):
-        if not reload_queue.empty():
-            EventLoop.close()
-        if EventLoop.status == 'started':
-            # Restarting the application doesn't automatically refresh the window
-            # since we are using a preexisting window instance. Force the refresh.
-            win = EventLoop.window
-            if win and win.canvas:
-                win.canvas.ask_update()
-
-    @classmethod
-    def visualize(cls, app):
-        '''kivy is designed to run a single application during an interpreter
-        session. To run multiple application instances we need to do some
-        special setup and teardown to ensure kivy's global variables are 
-        properly initialized and finalized. 
-        
-        Setup kivy, run the app, and teardown. See setUp() and tearDown()
-        for more information.
-        '''
-        cls.setUp()
-        try:
-            app.run()
-        finally:
-            cls.tearDown()
-   
-    @staticmethod
-    def tearDown():
-        stopTouchApp()
-
-    @staticmethod
-    def setUp():
-        # Currently the kivy input must be removed before continually 
-        # reinstantiating the application. The windows providers, and 
-        # possibly other provides for other platforms, currently 
-        # throw a 'ArugmentError' during stopTouchApp because the input
-        # providers are created without a window handle. If we can identify
-        # why the providers are incorrectly recreated then we can support 
-        # input in the visualized window. 
-        for items in Config.items('input'):
-            Config.remove_option('input', items[0])
+    See HotReloadInstructionQueue for full instruction set. 
+    '''
+    Clock.schedule_interval(partial(_visualization_update, hot_reload_queue), 0)   
+    next_instruction = None 
+    while not isinstance(next_instruction, StopInstruction):
+        next_instruction = hot_reload_queue.next_instruction()
+        if isinstance(next_instruction, KvStrInstruction):
+            _visualize(KvBuilderApp(kv_str=next_instruction.kv_str))
+        elif next_instruction:
+            raise ValueError("Hot Reload type not recognized")

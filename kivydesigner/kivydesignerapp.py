@@ -6,7 +6,7 @@ from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
-from kivydesigner.visualizationsubprocess import VisualizationSubprocess, HotReloadInstructionQueue
+from kivydesigner.visualizationsubprocess import run_visualization_app, HotReloadInstructionQueue
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
 DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
@@ -76,7 +76,7 @@ class KivyDesignerApp(App):
         # app using the KivyDesignerApp config. Kivy's initialization relies on global 
         # singletons, so mixing the environments will cause the visualization to fail.
         new_process = multiprocessing.Process(
-            target=VisualizationSubprocess.start,
+            target=run_visualization_app,
             args=(self.visualization_instructions,)
         )
         new_process.start()
