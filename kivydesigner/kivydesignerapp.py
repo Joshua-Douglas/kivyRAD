@@ -43,6 +43,7 @@ class KivyDesignerApp(App):
         designer is stopped.
         '''
         if self._is_visualizing():
+            self.visualization_instructions.stop_reload()
             self.visualization_subprocess.terminate()
 
     def _is_visualizing(self):

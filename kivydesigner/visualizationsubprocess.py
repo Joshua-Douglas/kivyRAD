@@ -80,15 +80,10 @@ class VisualizationSubprocess:
         Window.bind(on_flip=self.on_window_flip)
 
         self.visualize(KvBuilderApp(kv_str='Widget'))       
-        while True:
-            if not self.current_instruction:
-                continue
-
-            if isinstance(self.current_instruction, StopInstruction):
-                break 
-            elif isinstance(self.current_instruction, KvStrInstruction):
+        while not isinstance(self.current_instruction, StopInstruction):
+            if isinstance(self.current_instruction, KvStrInstruction):
                 self.visualize(KvBuilderApp(kv_str=self.current_instruction.kv_str))
-            else:
+            elif self.current_instruction:
                 raise ValueError("Hot Reload type not recognized")
 
         Window.unbind(on_flip=self.on_window_flip)
