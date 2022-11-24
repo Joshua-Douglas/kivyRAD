@@ -6,7 +6,7 @@ from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
 
 import multiprocessing
-from kivydesigner.visualizationsubprocess import run_visualization_app, HotReloadInstructionQueue
+from kivydesigner.hotreload import run_visualization_app, HotReloadInstructionQueue
 
 SRC_DIRECTORY = Path(os.path.dirname(__file__))
 DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
