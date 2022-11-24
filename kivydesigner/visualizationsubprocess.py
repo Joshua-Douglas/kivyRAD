@@ -78,7 +78,12 @@ class VisualizationSubprocess:
         # on_window_flip will listen for hot reload instructions
         # and stop the application any time an instruction is received
         Window.bind(on_flip=self.on_window_flip)
+        self.start()
 
+    def __del__(self):
+        Window.unbind(on_flip=self.on_window_flip)
+
+    def start(self):
         self.visualize(KvBuilderApp(kv_str='Widget'))       
         while not isinstance(self.current_instruction, StopInstruction):
             if isinstance(self.current_instruction, KvStrInstruction):
@@ -86,7 +91,8 @@ class VisualizationSubprocess:
             elif self.current_instruction:
                 raise ValueError("Hot Reload type not recognized")
 
-        Window.unbind(on_flip=self.on_window_flip)
+    def stop(self):
+        self.reload_queue.stop_reload()
 
     def on_window_flip(self, window):
         self.current_instruction = self.reload_queue.next_instruction() 
@@ -113,7 +119,7 @@ class VisualizationSubprocess:
         try:
             # Restarting the application doesn't automatically refresh the window
             # since we are using a preexisting window instance. Force the refresh.
-            Clock.schedule_interval(self._force_refresh, 1)
+            Clock.schedule_interval(self._force_refresh, 0)
             app.run()
         finally:
             Clock.unschedule(self._force_refresh)
