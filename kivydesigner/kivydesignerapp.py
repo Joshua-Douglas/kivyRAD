@@ -67,12 +67,14 @@ class KivyDesignerApp(App):
 
     def _start_visualizing(self):
         '''
-        Run the VisualizationSubprocess on a new child
-        process. VisualizationSubprocess will create 
-        and visualize cls_app_to_visualize. Hot reloads
-        can be performed by putting reload instructions
+        Run the VisualizationSubprocess on a new child process. 
+        Hot reloads can be performed by putting reload instructions
         onto the visualization_instructions queue. 
         '''
+        # We are taking special care to avoid creating VisualizationSubprocess within
+        # this interpreter session to avoid initializing the VisualizationSubprocess 
+        # app using the KivyDesignerApp config. Kivy's initialization relies on global 
+        # singletons, so mixing the environments will cause the visualization to fail.
         new_process = multiprocessing.Process(
             target=VisualizationSubprocess,
             args=(self.visualization_instructions,)
