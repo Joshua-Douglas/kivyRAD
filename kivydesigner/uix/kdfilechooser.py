@@ -2,17 +2,23 @@ from kivy.lang import Builder
 from kivy.uix.filechooser import FileChooserController, FileChooserLayout
 from kivy.uix.treeview import TreeViewNode
 from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import BooleanProperty
+
+from resources import get_png_resource
 
 Builder.load_file('kdfilechooser_style.kv', rulesonly=True)
 
 class KDFilechooserEntry(BoxLayout, TreeViewNode):
+
+    locked = BooleanProperty(False)
+    '''Locked entries cannot be opened, and are treated as leaf nodes'''
     
     def get_entry_icon_path(self, is_dir, is_open):
         if is_dir:
             suffix = 'opened' if is_open else 'closed'
             return f'atlas://data/images/defaulttheme/tree_{suffix}'
         else:
-            return "C:\\Users\\joshu\\source\\repos\\kivydesigner\\kivydesigner\\data\\kivy-icon-32.png"
+            return "C:\\Users\\joshu\\source\\repos\\kivydesigner\\kivydesigner\\data\\python-icon-32.png"
 
 class KDFilechooser(FileChooserController):
     _ENTRY_TEMPLATE = 'KDFilechooserEntryTemplate'

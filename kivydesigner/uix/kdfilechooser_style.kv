@@ -71,8 +71,6 @@
 #  {'name': str, 'get_nice_size': func, 'path': str, 'controller': ref,
 #   'isdir': bool, 'parent': ref, 'sep': str}
 [KDFilechooserEntryTemplate@KDFilechooserEntry]:
-    # Locked entries cannot be opened, and are treated as leaf nodes 
-    locked: False
     entries: []
     path: ctx.path
     orientation: 'horizontal'
@@ -83,7 +81,7 @@
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-    Label:
+    Label: # bring this up a level.... Only leave ctx shit here...
         id: filename
         text_size: self.width, None
         halign: 'left'
