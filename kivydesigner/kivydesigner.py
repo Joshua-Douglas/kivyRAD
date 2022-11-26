@@ -7,10 +7,6 @@ from kivy.uix.boxlayout import BoxLayout
 import multiprocessing
 from kivydesigner.hotreload import run_visualization_app, HotReloadInstructionQueue
 
-SRC_DIRECTORY = Path(os.path.dirname(__file__))
-DATA_FOLDER = os.path.join(SRC_DIRECTORY, 'data') 
-ICON_PATH = os.path.join(DATA_FOLDER, 'kivy-icon-48.png')
-
 class RootWidget(BoxLayout):
     pass
 
@@ -33,7 +29,8 @@ class KivyDesignerApp(App):
         self.title = 'Kivy Designer'
         self.visualization_instructions = HotReloadInstructionQueue()
         self.visualization_subprocess = None
-        root_widget = Builder.load_file(os.path.join(SRC_DIRECTORY, 'KivyDesigner.kv'))
+        src_dir = Path(os.path.dirname(__file__))
+        root_widget = Builder.load_file(os.path.join(src_dir, 'KivyDesigner.kv'))
         return root_widget
 
     def on_stop(self):

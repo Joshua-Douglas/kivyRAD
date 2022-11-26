@@ -1,5 +1,5 @@
-#:import ICON_PATH kivydesigner.kivydesigner.ICON_PATH
 #:set menubar_color (0.2, 0.2, 0.2, 1)
+#:import get_png_resource kivydesigner.uix.resources.get_png_resource
 
 RootWidget:
     orientation: 'vertical'
@@ -16,7 +16,7 @@ RootWidget:
         Image:
             size_hint: None, 1
             width: '30dp'
-            source: ICON_PATH
+            source: get_png_resource('kivy-icon', self.height)
         FileToolbarGroup:
             size_hint: None, 1
             width: '50dp'
