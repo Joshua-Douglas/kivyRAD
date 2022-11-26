@@ -1,8 +1,15 @@
+#:set filechooser_background_color (0.15,0.15,0.15,1)
 <KDFilechooserLayout>:
     on_entry_added: treeview.add_node(args[1])
     on_entries_cleared: treeview.root.nodes = []
     on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
     on_remove_subentry: args[2].nodes = []
+    canvas.before:
+        Color:
+            rgba: filechooser_background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
     BoxLayout:
         pos: root.pos
         size: root.size
@@ -50,9 +57,11 @@
     size_hint_y: None
     spacing: '8dp'
     height: '48dp' if dp(1) > 1 else '24dp'
+    odd_color: filechooser_background_color
+    even_color: filechooser_background_color
     canvas.before:
         Color:
-            rgba: self.color_selected if self.is_selected else self.odd_color if self.odd else self.even_color
+            rgba: self.color_selected if self.is_selected else filechooser_background_color
         Rectangle:
             pos: [self.parent.x, self.y] if self.parent else [0, 0]
             size: [self.parent.width, self.height] if self.parent else [1, 1]
@@ -62,11 +71,6 @@
             source: self.get_entry_icon_path(not self.is_leaf, self.is_open, self.height, self.path)
             size: self.height / 1.5, self.height / 1.5
             pos: self.x - dp(20), int(self.center_y - (self.height / 1.5) * .5)
-    canvas.after:
-        Color:
-            rgba: .5, .5, .5, .2
-        Line:
-            points: [self.parent.x, self.y, self.parent.right, self.y] if self.parent else []
 
 # Templates are a deprecated kivy feature, but the implementation of 
 # FileChooserController forces us to use them since the _ENTRY_TEMPLATE
