@@ -29,6 +29,8 @@ def get_png_resource(resource_name, requested_size):
     is not available, then return the next biggest png (or the 
     largest available).
     '''
+    if not resource_name:
+        return ''
     if resource_name not in PNG_IMAGES:
         raise KeyError(f'{resource_name} is not a valid kd resource name. Add this resource to the data folder.')
     if requested_size <= 0:

@@ -46,6 +46,10 @@
 
 # Use kvlang special syntax '-' to remove the inherited canvas instructions
 <-KDFileChooserEntry>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    spacing: '8dp'
+    height: '48dp' if dp(1) > 1 else '24dp'
     canvas.before:
         Color:
             rgba: self.color_selected if self.is_selected else self.odd_color if self.odd else self.even_color
@@ -55,7 +59,7 @@
         Color:
             rgba: 1, 1, 1, 1
         Rectangle:
-            source: self.get_entry_icon_path(not self.is_leaf, self.is_open)
+            source: self.get_entry_icon_path(not self.is_leaf, self.is_open, self.height, self.path)
             size: self.height / 1.5, self.height / 1.5
             pos: self.x - dp(20), int(self.center_y - (self.height / 1.5) * .5)
     canvas.after:
@@ -71,17 +75,12 @@
 #  {'name': str, 'get_nice_size': func, 'path': str, 'controller': ref,
 #   'isdir': bool, 'parent': ref, 'sep': str}
 [KDFilechooserEntryTemplate@KDFilechooserEntry]:
-    entries: []
     path: ctx.path
-    orientation: 'horizontal'
-    size_hint_y: None
-    spacing: '8dp'
-    height: '48dp' if dp(1) > 1 else '24dp'
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-    Label: # bring this up a level.... Only leave ctx shit here...
+    Label:
         id: filename
         text_size: self.width, None
         halign: 'left'
