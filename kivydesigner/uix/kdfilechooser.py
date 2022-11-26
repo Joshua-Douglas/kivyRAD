@@ -1,4 +1,5 @@
 from pathlib import Path
+from os.path import abspath, join
 
 from kivy.lang import Builder
 from kivy.uix.filechooser import FileChooserController, FileChooserLayout
@@ -35,6 +36,46 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
 class KDFilechooser(FileChooserController):
     _ENTRY_TEMPLATE = 'KDFilechooserEntryTemplate'
 
+    def entry_touched(self, entry, touch):
+        if ('button' in touch.profile and touch.button in (
+                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
+            return False
+
+        _dir = self.file_system.is_dir(entry.path)
+        dirselect = self.dirselect
+
+        if _dir and dirselect and touch.is_double_tap:
+            self.open_entry(entry)
+            return
+
+        if self.multiselect:
+            if entry.path in self.selection:
+                self.selection.remove(entry.path)
+            else:
+                if _dir and not self.dirselect:
+                    self.open_entry(entry)
+                    return
+                self.selection.append(entry.path)
+        else:
+            if _dir and not self.dirselect:
+                return
+            self.selection = [abspath(join(self.path, entry.path)), ]
+
+    def entry_released(self, entry, touch):
+        if (
+            'button' in touch.profile and touch.button in (
+                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
+            return False
+        if not self.multiselect:
+            if self.file_system.is_dir(entry.path) and not self.dirselect:
+                self.open_entry(entry)
+            elif touch.is_double_tap:
+                if self.dirselect and self.file_system.is_dir(entry.path):
+                    return
+                else:
+                    self.dispatch('on_submit', self.selection, touch)
+
+
 class KDFilechooserLayout(FileChooserLayout):
     VIEWNAME = 'list'
     _ENTRY_TEMPLATE = 'KDFilechooserEntryTemplate'
@@ -50,5 +91,5 @@ if __name__ == '__main__':
     from kivy.app import runTouchApp
     from pathlib import Path
 
-    rootdir = Path(__file__).parent.parent
+    rootdir = Path(__file__).parent.parent.parent
     runTouchApp(KDFilechooser(rootpath=str(rootdir)))
