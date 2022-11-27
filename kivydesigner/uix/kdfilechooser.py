@@ -43,8 +43,7 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
             elif ext == '.kv':
                 icon_name = 'kivy-icon'
             else:
-                # Add gentle icon here for unsupported file
-                icon_name = ''
+                icon_name = 'default-file'
             return get_png_resource(icon_name, icon_height)
 
 class KDFilechooser(FileChooserController):

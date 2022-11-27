@@ -61,6 +61,7 @@
     height: '48dp' if dp(1) > 1 else '24dp'
     odd_color: filechooser_background_color
     even_color: filechooser_background_color
+    color_selected: 0.196, 0.592, 0.992, 0.15
     canvas.before:
         Color:
             rgba: self.color_selected if self.is_selected else filechooser_background_color
@@ -73,6 +74,11 @@
             source: self.get_entry_icon_path(not self.is_leaf, self.is_open, self.height, self.path)
             size: self.height / 1.5, self.height / 1.5
             pos: self.x - dp(20), int(self.center_y - (self.height / 1.5) * .5)
+    canvas.after:
+        Color:
+            rgba: 0.196, 0.592, 0.992, int(self.is_selected)
+        Line:
+            rectangle: [self.parent.x+dp(1), self.y+dp(1), self.parent.width-dp(2), self.height-dp(2)] if self.parent else [0,0,0,0]
 
 # Templates are a deprecated kivy feature, but the implementation of 
 # FileChooserController forces us to use them since the _ENTRY_TEMPLATE
