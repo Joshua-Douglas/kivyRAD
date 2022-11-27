@@ -21,7 +21,7 @@
             height: '30dp'
             orientation: 'horizontal'
             Label:
-                text: 'Explorer'
+                text: root.title
                 text_size: self.size
                 halign: 'left'
                 bold: False
@@ -36,7 +36,7 @@
                 do_translation: False
                 size: treeview.size
                 size_hint_y: None
-                TreeView:
+                KDFileTreeView:
                     id: treeview
                     hide_root: True
                     size_hint_y: None
@@ -47,9 +47,11 @@
 
 <KDFilechooser>:
     layout: layout
+    dirselect: True
     KDFilechooserLayout:
         id: layout
         controller: root
+        title: self.get_title_name(root.rootpath)
 
 # Use kvlang special syntax '-' to remove the inherited canvas instructions
 <-KDFileChooserEntry>:
