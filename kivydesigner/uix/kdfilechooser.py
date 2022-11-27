@@ -141,6 +141,11 @@ class KDFilechooserLayout(FileChooserLayout):
                     treev.toggle_node(child)
                     self._open_node_cache.remove(child.path)
 
+    def collapse_all_nodes(self):
+        treev = self.ids.treeview
+        for root_node in treev.root.nodes:
+            if root_node.is_open:
+                treev.toggle_node(root_node)
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp

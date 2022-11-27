@@ -58,6 +58,7 @@
                 id: btn_collapse
                 pos: btn_refresh.right + dp(5), dp(2)
                 source: get_svg_resource('collapse')
+                on_release: root.collapse_all_nodes()
         ScrollView:
             id: scrollview
             do_scroll_x: False
