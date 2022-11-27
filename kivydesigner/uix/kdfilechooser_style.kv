@@ -10,7 +10,6 @@
     background_down: 'atlas://data/images/defaulttheme/button'
 
 <KDFilechooserLayout>:
-    on_entry_added: treeview.add_node(args[1])
     on_entries_cleared: treeview.root.nodes = []
     on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
     on_remove_subentry: args[2].nodes = []
@@ -54,6 +53,7 @@
                 id: btn_refresh
                 pos: btn_open_folder.right + dp(5), dp(2)
                 source: get_svg_resource('refresh')
+                on_release: root.refresh_entries()
             KDFilechooserIconButton:
                 id: btn_collapse
                 pos: btn_refresh.right + dp(5), dp(2)

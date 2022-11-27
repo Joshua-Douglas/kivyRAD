@@ -104,6 +104,7 @@ class KDFilechooserLayout(FileChooserLayout):
     def __init__(self, **kwargs):
         super(KDFilechooserLayout, self).__init__(**kwargs)
         self.fbind('on_entries_cleared', self.scroll_to_top)
+        self._open_node_cache = set()
 
     def scroll_to_top(self, *args):
         self.ids.scrollview.scroll_y = 1.0
@@ -112,6 +113,34 @@ class KDFilechooserLayout(FileChooserLayout):
         if rootpath and os.path.isdir(rootpath):
             return os.path.basename(rootpath).upper()
         return 'NO FOLDER OPENED'
+
+    def refresh_entries(self):
+        '''Refresh the entries, to update with any changes to the directory.'''
+        treev = self.ids.treeview
+        parents = treev.root.nodes
+
+        # Updating the treeview will clear and re-add the nodes
+        # The new nodes will not have remember the open state
+        # Cache here, and reapply after re-adding if still present
+        self._open_node_cache.clear()
+        for parent in parents:
+            for node in treev.iterate_open_nodes(parent):
+                if node.is_open:
+                    self._open_node_cache.add(node.path)
+
+        self.controller._trigger_update()
+
+    def on_entry_added(self, node, parent): 
+        treev = self.ids.treeview
+        treev.add_node(node)
+
+        if node.path in self._open_node_cache:
+            # Restore node & child open state, if necessary
+            for child in treev.iterate_all_nodes(node):
+                if child.path in self._open_node_cache:
+                    treev.toggle_node(child)
+                    self._open_node_cache.remove(child.path)
+
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp
