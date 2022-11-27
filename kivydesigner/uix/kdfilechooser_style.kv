@@ -1,4 +1,14 @@
 #:set filechooser_background_color (0.15,0.15,0.15,1)
+#:set selection_color (0.196, 0.592, 0.992, 0.15)
+#:import get_png_resource resources.get_png_resource
+#:import get_svg_resource resources.get_svg_resource
+
+<KDFilechooserIconButton@IconButton>:
+    size_hint: None, None 
+    size: 20, 20
+    background_color: 0.85, 0.85, 0.85, int(self.state == 'down')
+    background_down: 'atlas://data/images/defaulttheme/button'
+
 <KDFilechooserLayout>:
     on_entry_added: treeview.add_node(args[1])
     on_entries_cleared: treeview.root.nodes = []
@@ -16,17 +26,38 @@
         size_hint: None, None
         orientation: 'vertical'
         padding: dp(10), 0, 0, 0
-        BoxLayout:
+        RelativeLayout:
+            id: header_layout
             size_hint_y: None
             height: '30dp'
             orientation: 'horizontal'
             Label:
+                id: title_label
+                pos: 0,0
+                size_hint_x: None
+                size: header_layout.width - 4*dp(25), header_layout.height
                 text: root.title
+                shorten: True
+                shorten_from: 'right'
                 text_size: self.size
                 halign: 'left'
                 bold: False
-            # File browsing buttons will go here!
-            # New File, New Folder, Refresh Explorer, Collapse Folders
+            KDFilechooserIconButton:
+                id: btn_new_file
+                pos: title_label.width, dp(2)
+                source: get_svg_resource('new-file')
+            KDFilechooserIconButton:
+                id: btn_open_folder
+                pos: btn_new_file.right + dp(5), dp(2)
+                source: get_svg_resource('open-folder')
+            KDFilechooserIconButton:
+                id: btn_refresh
+                pos: btn_open_folder.right + dp(5), dp(2)
+                source: get_svg_resource('refresh')
+            KDFilechooserIconButton:
+                id: btn_collapse
+                pos: btn_refresh.right + dp(5), dp(2)
+                source: get_svg_resource('collapse')
         ScrollView:
             id: scrollview
             do_scroll_x: False

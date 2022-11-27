@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path 
 import os.path 
 
 from kivy.lang import Builder
@@ -116,6 +116,8 @@ class KDFilechooserLayout(FileChooserLayout):
 if __name__ == '__main__':
     from kivy.app import runTouchApp
     from pathlib import Path
+    from kivy.factory import Factory
+    Factory.register('IconButton', module='iconbutton')
 
     rootdir = Path(__file__).parent.parent.parent
     runTouchApp(KDFilechooser(rootpath=str(rootdir)))
