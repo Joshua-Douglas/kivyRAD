@@ -45,6 +45,7 @@
                 id: btn_new_file
                 pos: title_label.width, dp(2)
                 source: get_svg_resource('new-file')
+                on_release: root.new_file()
             KDFilechooserIconButton:
                 id: btn_open_folder
                 pos: btn_new_file.right + dp(5), dp(2)

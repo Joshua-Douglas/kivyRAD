@@ -132,7 +132,7 @@ class KDFilechooserLayout(FileChooserLayout):
 
     def on_entry_added(self, node, parent): 
         treev = self.ids.treeview
-        treev.add_node(node)
+        treev.add_node(node, parent)
 
         if node.path in self._open_node_cache:
             # Restore node & child open state, if necessary
@@ -146,6 +146,54 @@ class KDFilechooserLayout(FileChooserLayout):
         for root_node in treev.root.nodes:
             if root_node.is_open:
                 treev.toggle_node(root_node)
+
+    def get_selected_node(self):
+        '''Return the first selected node.'''
+        if len(self.controller.selection) == 0:
+            return None 
+
+        treev = self.ids.treeview
+        parents = treev.root.nodes
+        for parent in parents:
+            for child in treev.iterate_all_nodes(parent):
+                if child.path == self.controller.selection[0]:
+                    return child
+        
+    def new_file(self):
+        cur_selection = self.get_selected_node()
+        if cur_selection:
+            if (not cur_selection.is_leaf) and cur_selection.is_open:
+                new_parent = cur_selection
+                new_dirname = cur_selection.path
+            else:
+                new_parent = cur_selection.parent_node 
+                new_dirname = os.path.dirname(cur_selection.path)
+        else:
+            new_parent = self.ids.treeview.root
+            new_dirname = self.controller.rootpath
+
+        new_filename = 'new_file.kv'
+        new_path = os.path.join(new_dirname, new_filename)
+        i = 1
+        while os.path.exists(new_path):
+            i += 1
+            new_filename = f'new_file{i}.kv'
+            new_path = os.path.join(new_dirname, new_filename)
+
+        # Make file here
+        
+        ctx = {'name': new_filename,
+               'get_nice_size': None,
+               'path': new_path,
+               # Template expects callable controller
+               'controller': lambda: self.controller,
+               'isdir': False,
+               'parent': new_parent,
+               'sep': os.path.sep}
+
+        new_entry = self.controller._create_entry_widget(ctx)
+        self.controller.dispatch('on_entry_added', new_entry, new_parent)
+        self.controller.files.append(new_path)        
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp
