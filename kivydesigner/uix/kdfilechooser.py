@@ -180,8 +180,7 @@ class KDFilechooserLayout(FileChooserLayout):
             new_filename = f'new_file{i}.kv'
             new_path = os.path.join(new_dirname, new_filename)
 
-        # Make file here
-        
+        open(new_path, 'x')
         ctx = {'name': new_filename,
                'get_nice_size': None,
                'path': new_path,
@@ -192,8 +191,10 @@ class KDFilechooserLayout(FileChooserLayout):
                'sep': os.path.sep}
 
         new_entry = self.controller._create_entry_widget(ctx)
+        self.ids.treeview.select_node(new_entry)
         self.controller.dispatch('on_entry_added', new_entry, new_parent)
-        self.controller.files.append(new_path)        
+        self.controller.files.append(new_path)
+        self.controller.selection = [new_path,]
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp
