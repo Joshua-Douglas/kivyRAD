@@ -5,15 +5,20 @@ from kivy.lang import Builder
 from kivy.uix.filechooser import FileChooserController, FileChooserLayout
 from kivy.uix.treeview import TreeView, TreeViewNode
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.behaviors import FocusBehavior
+from kivy.core.text import DEFAULT_FONT
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
 
 from resources import get_png_resource
 
 Builder.load_file('kdfilechooser_style.kv', rulesonly=True)
 
-class KDFileTreeView(TreeView):
+class KDFileTreeView(FocusBehavior, TreeView):
 
     def on_touch_down(self, touch):
+        super().on_touch_down(touch)
         node = self.get_node_at_pos(touch.pos)
         if not node:
             return
@@ -25,12 +30,78 @@ class KDFileTreeView(TreeView):
         node.dispatch('on_touch_down', touch)
         return True
 
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        super().keyboard_on_key_down(window, keycode, text, modifiers)
+        if self.focus and self.selected_node:
+            self.selected_node.on_key_down(window, keycode, text, modifiers)
+
+    def keyboard_on_key_up(self, window, keycode):
+        if (keycode[1] == 'f2') and self.selected_node:
+            #self.focus_next = self.selected_node
+            #self.focus = False
+            self.selected_node.enable_edit_mode()
+            #self.focus_next = self.selected_node._text_viewer
+            # Give focus to selected node
+            return True
+        return super().keyboard_on_key_up(window, keycode)
+
 class KDFilechooserEntry(BoxLayout, TreeViewNode):
 
     locked = BooleanProperty(False)
     '''Locked entries cannot be opened, and are treated as leaf nodes'''
     path = StringProperty('')
     entries = ListProperty([])
+    text = StringProperty('')
+    font_name = StringProperty(DEFAULT_FONT)
+    readonly = BooleanProperty(False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._set_text_viewer(False)
+
+    def on_text(self, *args):
+        self._text_viewer.text = self.text
+
+    def on_key_down(self, window, keycode, text, modifiers):
+        if self._in_edit_mode():
+            # Doesn't handle delete or special commands. Need to wire up this functionality as well.
+            self._text_viewer.keyboard_on_textinput(window, text)
+            return True
+        return False
+
+    def on_is_selected(self, *args):
+        # Disable edit mode if the node is de-selected
+        if self._in_edit_mode() and (not self.is_selected):
+            self.disable_edit_mode()
+
+    def disable_edit_mode(self):
+        self._set_text_viewer(False)
+
+    def enable_edit_mode(self):
+        self._set_text_viewer(True)
+
+    def _in_edit_mode(self):
+        return isinstance(self._text_viewer, TextInput)
+
+    def on_width(self, *args):
+        self._text_viewer.text_size = self.width, None
+
+    def on_font_name(self, *args):
+        self._text_viewer.font_name = self.font_name
+
+    def _set_text_viewer(self, edit_mode):
+        # Add code to handle text input value here. 
+        self.clear_widgets()
+        # Only one editable node is allowed at a time. 
+        # The node must be selected to enter edit mode
+        if edit_mode and self.is_selected:
+            self._text_viewer = TextInput(text=self.text,
+              multiline=False, focus=True)
+        else:
+            self._text_viewer = Label(text=self.text, 
+              text_size=(self.width, None), shorten=True, halign='left')
+            
+        self.add_widget(self._text_viewer)
     
     def get_entry_icon_path(self, is_dir, is_open, icon_height, filepath):
         if is_dir:
@@ -102,7 +173,7 @@ class KDFilechooserLayout(FileChooserLayout):
     title = StringProperty('')
 
     def __init__(self, **kwargs):
-        super(KDFilechooserLayout, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.fbind('on_entries_cleared', self.scroll_to_top)
         self._open_node_cache = set()
 

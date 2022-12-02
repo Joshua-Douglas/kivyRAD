@@ -121,14 +121,9 @@
 #   'isdir': bool, 'parent': ref, 'sep': str}
 [KDFilechooserEntryTemplate@KDFilechooserEntry]:
     path: ctx.path
+    text: ctx.name
+    font_name: ctx.controller().font_name
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-    Label:
-        id: filename
-        text_size: self.width, None
-        halign: 'left'
-        shorten: True
-        text: ctx.name
-        font_name: ctx.controller().font_name
