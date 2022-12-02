@@ -1,7 +1,9 @@
 from pathlib import Path 
 import os.path 
+from functools import partial
 
 from kivy.lang import Builder
+from kivy.clock import Clock
 from kivy.uix.filechooser import FileChooserController, FileChooserLayout
 from kivy.uix.treeview import TreeView, TreeViewNode
 from kivy.uix.boxlayout import BoxLayout
@@ -53,25 +55,25 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
     entries = ListProperty([])
     text = StringProperty('')
     font_name = StringProperty(DEFAULT_FONT)
-    readonly = BooleanProperty(False)
+    _in_edit_mode = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._set_text_viewer(False)
 
-    def on_text(self, *args):
-        self._text_viewer.text = self.text
+    def on_text(self, instance, new_text):
+        self._text_viewer.text = new_text
 
     def on_key_down(self, window, keycode, text, modifiers):
-        if self._in_edit_mode():
+        if self._in_edit_mode:
             # Doesn't handle delete or special commands. Need to wire up this functionality as well.
             self._text_viewer.keyboard_on_textinput(window, text)
             return True
         return False
 
-    def on_is_selected(self, *args):
+    def on_is_selected(self, instance, is_sel):
         # Disable edit mode if the node is de-selected
-        if self._in_edit_mode() and (not self.is_selected):
+        if self._in_edit_mode and (not is_sel):
             self.disable_edit_mode()
 
     def disable_edit_mode(self):
@@ -80,11 +82,8 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
     def enable_edit_mode(self):
         self._set_text_viewer(True)
 
-    def _in_edit_mode(self):
-        return isinstance(self._text_viewer, TextInput)
-
-    def on_width(self, *args):
-        self._text_viewer.text_size = self.width, None
+    def on_width(self, instance, new_width):
+        self._text_viewer.text_size = new_width, None
 
     def on_font_name(self, *args):
         self._text_viewer.font_name = self.font_name
@@ -95,11 +94,33 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
         # Only one editable node is allowed at a time. 
         # The node must be selected to enter edit mode
         if edit_mode and self.is_selected:
-            self._text_viewer = TextInput(text=self.text,
-              multiline=False, focus=True)
+            # Transparent background, white text, white cursor,
+            # and transparent blue selection
+            edit_field = TextInput(text=self.text,
+              multiline=False, focus=True, padding=[0,0], 
+              halign='left', background_color=[0,0,0,0], 
+              foreground_color=[1,1,1,1],
+              selection_color=(0.196, 0.592, 0.992, 0.4),
+              cursor_color=[1,1,1,1])
+
+            # Force a center vertical alignment
+            vertical_padding = (self.height - edit_field.minimum_height) // 2
+            edit_field.padding = [0, vertical_padding]
+            
+            # Select the file name and set cursor position
+            # TextInput needs to redraw before changing cursor pos
+            file_ext_idx = self.text.find(Path(self.text).suffix)
+            edit_field.select_text(0, file_ext_idx)
+            def _set_cursor(edit, col, dt):
+                edit.cursor = [col, 0]
+            Clock.schedule_once(partial(_set_cursor, edit_field, file_ext_idx), 0)
+
+            self._text_viewer = edit_field
+            self._in_edit_mode = True
         else:
             self._text_viewer = Label(text=self.text, 
               text_size=(self.width, None), shorten=True, halign='left')
+            self._in_edit_mode = False
             
         self.add_widget(self._text_viewer)
     

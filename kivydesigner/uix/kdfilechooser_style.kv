@@ -97,13 +97,17 @@
     color_selected: 0.196, 0.592, 0.992, 0.15
     canvas.before:
         Color:
-            rgba: self.color_selected if self.is_selected else filechooser_background_color
+            # Draw a light blue rectangle if the entry is selected
+            # Disable the selection rectangle if editing the entry
+            # Since the TextInput provides text selection highlighting
+            rgba: self.color_selected if (self.is_selected and not self._in_edit_mode) else filechooser_background_color
         Rectangle:
             pos: [self.parent.x, self.y] if self.parent else [0, 0]
             size: [self.parent.width, self.height] if self.parent else [1, 1]
         Color:
             rgba: 1, 1, 1, 1
         Rectangle:
+            # Populate the entry icon, based on directory and file type
             source: self.get_entry_icon_path(not self.is_leaf, self.is_open, self.height, self.path)
             size: self.height / 1.5, self.height / 1.5
             pos: self.x - dp(20), int(self.center_y - (self.height / 1.5) * .5)
@@ -111,6 +115,7 @@
         Color:
             rgba: 0.196, 0.592, 0.992, int(self.is_selected)
         Line:
+            # Draw a darker blue border around selected entries
             rectangle: [self.parent.x+dp(1), self.y+dp(1), self.parent.width-dp(2), self.height-dp(2)] if self.parent else [0,0,0,0]
 
 # Templates are a deprecated kivy feature, but the implementation of 
