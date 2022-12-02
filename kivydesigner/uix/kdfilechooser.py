@@ -20,30 +20,42 @@ Builder.load_file('kdfilechooser_style.kv', rulesonly=True)
 class KDFileTreeView(FocusBehavior, TreeView):
 
     def on_touch_down(self, touch):
-        super().on_touch_down(touch)
+        if not self.collide_point(*touch.pos):
+            return
+        if (not self.disabled and self.is_focusable and
+            ('button' not in touch.profile or
+             not touch.button.startswith('scroll'))):
+            self.focus = True
+            FocusBehavior.ignored_touch.append(touch)
+
         node = self.get_node_at_pos(touch.pos)
         if not node:
             return
         if node.disabled:
             return
-        # Toggle and select the node at each selection
-        self.toggle_node(node)
-        self.select_node(node)
+
+        if node != self.selected_node:
+            # Toggle and select the node at each selection
+            self.toggle_node(node)
+            self.select_node(node)
+        
         node.dispatch('on_touch_down', touch)
         return True
 
-    def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        super().keyboard_on_key_down(window, keycode, text, modifiers)
-        if self.focus and self.selected_node:
-            self.selected_node.on_key_down(window, keycode, text, modifiers)
+    def get_focus_next(self):
+        return self.selected_node.get_focus_widget()
+
+    def get_focus_previous(self):
+        return self.selected_node.get_focus_widget()
+
+    #def keyboard_on_key_down(self, window, keycode, text, modifiers):
+    ##    super().keyboard_on_key_down(window, keycode, text, modifiers)
+     #   if self.focus and self.selected_node:
+     #       self.selected_node.on_key_down(window, keycode, text, modifiers)
 
     def keyboard_on_key_up(self, window, keycode):
         if (keycode[1] == 'f2') and self.selected_node:
-            #self.focus_next = self.selected_node
-            #self.focus = False
             self.selected_node.enable_edit_mode()
-            #self.focus_next = self.selected_node._text_viewer
-            # Give focus to selected node
             return True
         return super().keyboard_on_key_up(window, keycode)
 
@@ -64,6 +76,10 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
     def on_text(self, instance, new_text):
         self._text_viewer.text = new_text
 
+    def on_touch_down(self, touch):
+        if self._in_edit_mode:
+            self._text_viewer.on_touch_down(touch)
+
     def on_key_down(self, window, keycode, text, modifiers):
         if self._in_edit_mode:
             # Doesn't handle delete or special commands. Need to wire up this functionality as well.
@@ -81,6 +97,11 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
 
     def enable_edit_mode(self):
         self._set_text_viewer(True)
+
+    def get_focus_widget(self):
+        if self._in_edit_mode:
+            return self._text_viewer
+        return None
 
     def on_width(self, instance, new_width):
         self._text_viewer.text_size = new_width, None
