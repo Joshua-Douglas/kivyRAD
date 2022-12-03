@@ -46,12 +46,7 @@ class KDFileTreeView(FocusBehavior, TreeView):
         return self.selected_node.get_focus_widget()
 
     def get_focus_previous(self):
-        return self.selected_node.get_focus_widget()
-
-    #def keyboard_on_key_down(self, window, keycode, text, modifiers):
-    ##    super().keyboard_on_key_down(window, keycode, text, modifiers)
-     #   if self.focus and self.selected_node:
-     #       self.selected_node.on_key_down(window, keycode, text, modifiers)
+        return None
 
     def keyboard_on_key_up(self, window, keycode):
         if (keycode[1] == 'f2') and self.selected_node:
@@ -118,11 +113,14 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
             # Transparent background, white text, white cursor,
             # and transparent blue selection
             edit_field = TextInput(text=self.text,
-              multiline=False, focus=True, padding=[0,0], 
+              multiline=False, focus=False, padding=[0,0], 
               halign='left', background_color=[0,0,0,0], 
               foreground_color=[1,1,1,1],
               selection_color=(0.196, 0.592, 0.992, 0.4),
               cursor_color=[1,1,1,1])
+
+            # Focus needs to change to fire OnFocus event
+            edit_field.focus = True
 
             # Force a center vertical alignment
             vertical_padding = (self.height - edit_field.minimum_height) // 2
@@ -136,6 +134,9 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
                 edit.cursor = [col, 0]
             Clock.schedule_once(partial(_set_cursor, edit_field, file_ext_idx), 0)
 
+            edit_field.bind(on_text_validate=self.on_text_validate)
+            edit_field.bind(focus=self.on_focus)
+
             self._text_viewer = edit_field
             self._in_edit_mode = True
         else:
@@ -144,6 +145,13 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
             self._in_edit_mode = False
             
         self.add_widget(self._text_viewer)
+
+    def on_text_validate(self, edit_field):
+        new_filename = edit_field.text
+        pass
+
+    def on_focus(self, edit_field, is_focused):
+        pass
     
     def get_entry_icon_path(self, is_dir, is_open, icon_height, filepath):
         if is_dir:
