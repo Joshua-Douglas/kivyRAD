@@ -65,11 +65,10 @@ class KDFileTreeView(FocusBehavior, TreeView):
             return
         if node.disabled:
             return
-
-        if node != self.selected_node:
-            # Toggle and select the node at each selection
-            self.toggle_node(node)
-            self.select_node(node)
+            
+        # Toggle and select the node at each selection
+        self.toggle_node(node)
+        self.select_node(node)
         
         node.dispatch('on_touch_down', touch)
         return True
