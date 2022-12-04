@@ -8,7 +8,8 @@ DATA_FOLDER = os.path.join(PARENT_DIR, 'data')
 PNG_IMAGES = [ 
     'kivy-icon',
     'python-icon',
-    'default-file'
+    'default-file',
+    'info'
 ]
 SUPPORTED_PNG_SIZES_PX = (16, 32, 48, 64)
 
