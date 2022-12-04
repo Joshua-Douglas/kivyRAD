@@ -1,5 +1,7 @@
 from pathlib import Path 
+import os
 import os.path 
+import shutil
 from functools import partial
 
 from kivy.lang import Builder
@@ -10,11 +12,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors import FocusBehavior
-from kivy.uix.modalview import ModalView
 from kivy.core.text import DEFAULT_FONT
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
 
 from resources import get_png_resource
+from modalmsg import ModalMsg
 
 '''
 The file chooser has the following structure. Defined in py and kvlang.
@@ -103,12 +105,20 @@ class KDFileTreeView(FocusBehavior, TreeView):
         file/directory from the file system. Ask the user before proceeding
         with the deletion. 
         '''
+        def _delete_internal(node_to_delete, do_remove):
+            if not do_remove:
+                return
+            filepath = node_to_delete.path
+            if os.path.isdir(filepath):
+                shutil.rmtree(filepath)
+            else:
+                os.remove(filepath)
+            self.remove_node(node_to_delete)
+
         dir_msg = '' if node.is_leaf else " and its contents"
         msg_to_user = f'Are you sure you want to delete{node.text}{dir_msg}?'
-        mv = ModalView(size_hint=(None, None), size=(400, 400))
-        mv.add_widget(Label(text=msg_to_user))
-        mv.open()
-        pass
+        modal_win = ModalMsg(message=msg_to_user)
+        modal_win.open(lambda win, response: _delete_internal(node, response))
 
     def iterate_all_nodes(self, node=None):
         parent_nodes = []
@@ -356,7 +366,7 @@ class KDFilechooserLayout(FileChooserLayout):
             # Might look like a weird check, but iterate_open_nodes iterates over
             # all nodes except for those who have a closed parent. Therefore it 
             # does returned closed nodes and leaf nodes.
-            if node.is_open():
+            if node.is_open:
                 self._open_node_cache.add(node.path)
         self.controller._trigger_update()
 
