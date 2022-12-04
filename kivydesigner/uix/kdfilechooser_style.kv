@@ -1,4 +1,6 @@
+# light grey/black
 #:set filechooser_background_color (0.15,0.15,0.15,1)
+# light blue
 #:set selection_color (0.196, 0.592, 0.992, 0.15)
 #:import get_png_resource resources.get_png_resource
 #:import get_svg_resource resources.get_svg_resource
@@ -100,7 +102,7 @@
             # Draw a light blue rectangle if the entry is selected
             # Disable the selection rectangle if editing the entry
             # Since the TextInput provides text selection highlighting
-            rgba: self.color_selected if (self.is_selected and not self._in_edit_mode) else filechooser_background_color
+            rgba: self.color_selected if (self.is_selected and not self.in_edit_mode) else filechooser_background_color
         Rectangle:
             pos: [self.parent.x, self.y] if self.parent else [0, 0]
             size: [self.parent.width, self.height] if self.parent else [1, 1]

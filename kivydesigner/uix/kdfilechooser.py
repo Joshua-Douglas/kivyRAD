@@ -10,16 +10,46 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.modalview import ModalView
 from kivy.core.text import DEFAULT_FONT
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
 
 from resources import get_png_resource
+
+'''
+The file chooser has the following structure. Defined in py and kvlang.
+
+KDFilechooser:
+  KDFilechooserLayout:
+    BoxLayout:
+        IconButtons:
+        KDFileTreeView:
+            KDFileChooserEntries:
+
+The KDFileChooser is responsible generating and filtering the available files. Files
+are searched for each time a directory is opened, so it handles node expansions. 
+
+The KDFileChooserLayout species the layout of the file entries. This implementation 
+has a header with icon buttons and a treeview used to view the directory structure. 
+
+The KDFileTreeView is a stylized TreeView that is capable of directing focus to the 
+selected node, if the node is in edit mode. 
+
+The KDFileChooserEntries node are capable of displaying files and directores. Both node
+types support two modes - read only mode and edit mode. While in edit mode the user can 
+rename the file or directory. Users can cancel edits by pressing escape. 
+'''
 
 Builder.load_file('kdfilechooser_style.kv', rulesonly=True)
 
 class KDFileTreeView(FocusBehavior, TreeView):
 
     def on_touch_down(self, touch):
+        '''
+        Get focus on valid touches. Nodes are selected and toggled
+        at each click. super() is purposefully not called because 
+        the node expansion behavior was changed. 
+        '''
         if not self.collide_point(*touch.pos):
             return
         if (not self.disabled and self.is_focusable and
@@ -43,26 +73,86 @@ class KDFileTreeView(FocusBehavior, TreeView):
         return True
 
     def get_focus_next(self):
+        #Only one child is focusable, so no need to do a full search.
         return self.selected_node.get_focus_widget()
 
     def get_focus_previous(self):
-        return None
+        return self
 
     def keyboard_on_key_up(self, window, keycode):
+        '''
+        Define the treeview-specific keybinds. Note: The nodes have a richer
+        suite of keybinds while in edit mode (cntr+A, cntr+C, etc.)
+        '''
         if (keycode[1] == 'f2') and self.selected_node:
+            self.selected_node.bind(in_edit_mode=self.on_edit_mode_selected_node)
             self.selected_node.enable_edit_mode()
             return True
+        elif (keycode[1] == 'delete' and self.select_node):
+            self.delete_file_node(self.selected_node)
+            return True
         return super().keyboard_on_key_up(window, keycode)
+
+    def on_edit_mode_selected_node(self, edit_field, is_child_editable):
+        # Take the focus back when leaving edit mode
+        self.focus = not is_child_editable
+
+    def delete_file_node(self, node):
+        '''
+        Delete node from the treeview, and remove the corresponding 
+        file/directory from the file system. Ask the user before proceeding
+        with the deletion. 
+        '''
+        dir_msg = '' if node.is_leaf else " and its contents"
+        msg_to_user = f'Are you sure you want to delete{node.text}{dir_msg}?'
+        mv = ModalView(size_hint=(None, None), size=(400, 400))
+        mv.add_widget(Label(text=msg_to_user))
+        mv.open()
+        pass
+
+    def iterate_all_nodes(self, node=None):
+        parent_nodes = []
+        if isinstance(node, KDFilechooserEntry):
+            parent_nodes.append(node)
+        else:
+            # By design the top note is not a KDFilechooserEntry
+            # Start at the root children to iterate over all KDFilechooserEntries
+            parent_nodes.extend(self.root.nodes)
+        
+        for parent in parent_nodes:
+            for cur_node in super().iterate_all_nodes(parent):
+                yield cur_node
+
+    def iterate_open_nodes(self, node=None):
+        parent_nodes = []
+        if isinstance(node, KDFilechooserEntry):
+            parent_nodes.append(node)
+        else:
+            # By design the top note is not a KDFilechooserEntry
+            # Start at the root children to iterate over all KDFilechooserEntries
+            parent_nodes.extend(self.root.nodes)
+        
+        for parent in parent_nodes:
+                for cur_node in super().iterate_open_nodes(parent):
+                    yield cur_node
+
 
 class KDFilechooserEntry(BoxLayout, TreeViewNode):
 
     locked = BooleanProperty(False)
     '''Locked entries cannot be opened, and are treated as leaf nodes'''
     path = StringProperty('')
+    '''Full path to the file or directory represented by the current node'''
     entries = ListProperty([])
+    '''List of child entries'''
     text = StringProperty('')
+    '''Node display text - set to the file or directory name.'''
     font_name = StringProperty(DEFAULT_FONT)
-    _in_edit_mode = BooleanProperty(False)
+    '''Node display font.'''
+    in_edit_mode = BooleanProperty(False) # MAKE THIS READ ONLY
+    '''Read only properly, set to True if the node text is editable. While in edit
+    mode the entry displays an editable TextInput widget. Only the selected node 
+    is able to be edited, so only one node can be edited at a time.'''
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -72,19 +162,12 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
         self._text_viewer.text = new_text
 
     def on_touch_down(self, touch):
-        if self._in_edit_mode:
+        if self.in_edit_mode:
             self._text_viewer.on_touch_down(touch)
-
-    def on_key_down(self, window, keycode, text, modifiers):
-        if self._in_edit_mode:
-            # Doesn't handle delete or special commands. Need to wire up this functionality as well.
-            self._text_viewer.keyboard_on_textinput(window, text)
-            return True
-        return False
 
     def on_is_selected(self, instance, is_sel):
         # Disable edit mode if the node is de-selected
-        if self._in_edit_mode and (not is_sel):
+        if self.in_edit_mode and (not is_sel):
             self.disable_edit_mode()
 
     def disable_edit_mode(self):
@@ -94,7 +177,8 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
         self._set_text_viewer(True)
 
     def get_focus_widget(self):
-        if self._in_edit_mode:
+        '''Return the focusable widget. Return None if the node is in read only mode.'''
+        if self.in_edit_mode:
             return self._text_viewer
         return None
 
@@ -124,36 +208,59 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
 
             # Force a center vertical alignment
             vertical_padding = (self.height - edit_field.minimum_height) // 2
-            edit_field.padding = [0, vertical_padding]
-            
-            # Select the file name and set cursor position
-            # TextInput needs to redraw before changing cursor pos
-            file_ext_idx = self.text.find(Path(self.text).suffix)
-            edit_field.select_text(0, file_ext_idx)
+            edit_field.padding = [0, max(vertical_padding, 0)]
+
+            file_ext = Path(self.text).suffix
+            if file_ext:
+                selection_idx = self.text.find(file_ext)
+            else:
+                selection_idx = len(self.text)
+            edit_field.select_text(0, selection_idx)
+
             def _set_cursor(edit, col, dt):
                 edit.cursor = [col, 0]
-            Clock.schedule_once(partial(_set_cursor, edit_field, file_ext_idx), 0)
+            Clock.schedule_once(partial(_set_cursor, edit_field, selection_idx), 0)
 
             edit_field.bind(on_text_validate=self.on_text_validate)
             edit_field.bind(focus=self.on_focus)
 
             self._text_viewer = edit_field
-            self._in_edit_mode = True
+            self.in_edit_mode = True
         else:
             self._text_viewer = Label(text=self.text, 
               text_size=(self.width, None), shorten=True, halign='left')
-            self._in_edit_mode = False
+            self.in_edit_mode = False
             
         self.add_widget(self._text_viewer)
 
     def on_text_validate(self, edit_field):
-        new_filename = edit_field.text
-        pass
+        '''
+        Fired when the TextInput is exited without cancelling the change
+        (i.e. without pressing 'escape')
+        '''
+        original_directory = os.path.dirname(self.path) 
+        new_path = os.path.join(original_directory, edit_field.text)
+        try:
+            os.rename(self.path, new_path)
+            self.path = new_path 
+            self.text = edit_field.text
+        except:
+            # Allow the rename to silently fail. 
+            # In the future we might display the error as a popup label
+            pass 
 
     def on_focus(self, edit_field, is_focused):
-        pass
+        '''
+        Fired each time the TextInput is exited. Only one node is allowed
+        to be editable at a time, so return to read only mode if is_focus=False.
+        '''
+        self._set_text_viewer(is_focused)
     
     def get_entry_icon_path(self, is_dir, is_open, icon_height, filepath):
+        '''
+        Set the images within the entry. Directories have error icons 
+        and files have filetype logos if they are suppored by the kivydesign app.
+        '''
         if is_dir:
             suffix = 'opened' if is_open else 'closed'
             return f'atlas://data/images/defaulttheme/tree_{suffix}'
@@ -169,6 +276,8 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
 
 class KDFilechooser(FileChooserController):
     _ENTRY_TEMPLATE = 'KDFilechooserEntryTemplate'
+    '''_ENTRY_TEMPLATE is used to create the individual entires using
+    the context outlined in the comment for KDFilechooserEntryTemplate.'''
 
     def entry_touched(self, entry, touch):
         '''
@@ -221,6 +330,7 @@ class KDFilechooserLayout(FileChooserLayout):
     _ENTRY_TEMPLATE = 'KDFilechooserEntryTemplate'
 
     title = StringProperty('')
+    '''The top label's display text.'''
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -238,17 +348,16 @@ class KDFilechooserLayout(FileChooserLayout):
     def refresh_entries(self):
         '''Refresh the entries, to update with any changes to the directory.'''
         treev = self.ids.treeview
-        parents = treev.root.nodes
-
         # Updating the treeview will clear and re-add the nodes
         # The new nodes will not have remember the open state
         # Cache here, and reapply after re-adding if still present
         self._open_node_cache.clear()
-        for parent in parents:
-            for node in treev.iterate_open_nodes(parent):
-                if node.is_open:
-                    self._open_node_cache.add(node.path)
-
+        for node in treev.iterate_open_nodes():
+            # Might look like a weird check, but iterate_open_nodes iterates over
+            # all nodes except for those who have a closed parent. Therefore it 
+            # does returned closed nodes and leaf nodes.
+            if node.is_open():
+                self._open_node_cache.add(node.path)
         self.controller._trigger_update()
 
     def on_entry_added(self, node, parent): 
@@ -274,13 +383,17 @@ class KDFilechooserLayout(FileChooserLayout):
             return None 
 
         treev = self.ids.treeview
-        parents = treev.root.nodes
-        for parent in parents:
-            for child in treev.iterate_all_nodes(parent):
-                if child.path == self.controller.selection[0]:
-                    return child
+        for node in treev.iterate_all_nodes():
+            if node.path == self.controller.selection[0]:
+                return node
         
     def new_file(self):
+        '''
+        Add a new file, in the same directory as the currently selected
+        node. Place the file in the root directory if no file is selected. 
+
+        The newly added file will start in edit mode. 
+        '''
         cur_selection = self.get_selected_node()
         if cur_selection:
             if (not cur_selection.is_leaf) and cur_selection.is_open:
