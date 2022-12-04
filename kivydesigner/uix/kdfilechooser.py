@@ -42,7 +42,7 @@ types support two modes - read only mode and edit mode. While in edit mode the u
 rename the file or directory. Users can cancel edits by pressing escape. 
 '''
 
-Builder.load_file('kdfilechooser_style.kv', rulesonly=True)
+Builder.load_file('kdfilechooser.kv', rulesonly=True)
 
 class KDFileTreeView(FocusBehavior, TreeView):
 
