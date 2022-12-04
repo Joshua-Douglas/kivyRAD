@@ -14,6 +14,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors import FocusBehavior
 from kivy.core.text import DEFAULT_FONT
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
+from plyer import filechooser
 
 from resources import get_png_resource
 from modalmsg import ModalMsg
@@ -439,6 +440,16 @@ class KDFilechooserLayout(FileChooserLayout):
         self.controller.dispatch('on_entry_added', new_entry, new_parent)
         self.controller.files.append(new_path)
         self.controller.selection = [new_path,]
+
+    def select_root_path(self):
+        # Windows filechooser is very limited. It does not allow selecting an 
+        # initial directory. Setting the path should work on other OSs.
+        new_dir = filechooser.choose_dir(path=self.controller.path, 
+          title='Select a folder to open in the project explorer')
+        if new_dir:
+            new_rootpath = os.path.realpath(new_dir[0])
+            self.controller.path = new_rootpath
+            self.controller.rootpath = new_rootpath
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp

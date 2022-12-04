@@ -52,6 +52,7 @@
                 id: btn_open_folder
                 pos: btn_new_file.right + dp(5), dp(2)
                 source: get_svg_resource('open-folder')
+                on_release: root.select_root_path()
             KDFilechooserIconButton:
                 id: btn_refresh
                 pos: btn_open_folder.right + dp(5), dp(2)
