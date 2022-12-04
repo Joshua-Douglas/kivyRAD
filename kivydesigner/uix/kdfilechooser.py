@@ -406,12 +406,12 @@ class KDFilechooserLayout(FileChooserLayout):
             new_parent = self.ids.treeview.root
             new_dirname = self.controller.rootpath
 
-        new_filename = 'new_file.kv'
+        new_filename = 'new_file'
         new_path = os.path.join(new_dirname, new_filename)
         i = 1
         while os.path.exists(new_path):
             i += 1
-            new_filename = f'new_file{i}.kv'
+            new_filename = f'new_file{i}'
             new_path = os.path.join(new_dirname, new_filename)
 
         open(new_path, 'x')
@@ -426,6 +426,7 @@ class KDFilechooserLayout(FileChooserLayout):
 
         new_entry = self.controller._create_entry_widget(ctx)
         self.ids.treeview.select_node(new_entry)
+        new_entry.enable_edit_mode()
         self.controller.dispatch('on_entry_added', new_entry, new_parent)
         self.controller.files.append(new_path)
         self.controller.selection = [new_path,]
