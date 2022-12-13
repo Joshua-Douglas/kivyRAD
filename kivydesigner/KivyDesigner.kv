@@ -21,7 +21,7 @@ RootWidget:
         FileToolbarGroup:
             size_hint: None, 1
             width: '50dp'
-            on_open_file: visualizer.open_file(*args)
+            on_open_file: visualizer.open_file(args[1])
     BoxLayout: 
         # The main application including everything except toolbar
         BoxLayout:
@@ -32,5 +32,8 @@ RootWidget:
             width: '300dp'
             KDFilechooser: 
                 rootpath: str(Path.cwd())
+                # Submit passes the selection as an Observable list
+                # Take the first entry since multiselection is disabled
+                on_submit: visualizer.open_file(args[1][0])
         KivyVisualizer:
             id: visualizer
