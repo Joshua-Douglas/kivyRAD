@@ -116,7 +116,7 @@ class KDFileTreeView(FocusBehavior, TreeView):
             self.remove_node(node_to_delete)
 
         dir_msg = '' if node.is_leaf else " and its contents"
-        msg_to_user = f'Are you sure you want to delete{node.text}{dir_msg}?'
+        msg_to_user = f'Are you sure you want to delete {node.text}{dir_msg}?'
         modal_win = ModalMsg(message=msg_to_user)
         modal_win.open(lambda win, response: _delete_internal(node, response))
 
