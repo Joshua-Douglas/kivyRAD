@@ -1,8 +1,11 @@
+from pathlib import Path
 from kivy.uix.modalview import ModalView
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty
 
-Builder.load_file('modalmsg.kv', rulesonly=True)
+kv_filepath = Path(__file__).with_suffix('.kv')
+Builder.load_file(str(kv_filepath), rulesonly=True)
+
 class ModalMsg(ModalView):
     title = StringProperty('Kivy Designer')
     message = StringProperty('')

@@ -16,8 +16,8 @@ from kivy.core.text import DEFAULT_FONT
 from kivy.properties import BooleanProperty, StringProperty, ListProperty
 from plyer import filechooser
 
-from resources import get_png_resource
-from modalmsg import ModalMsg
+from kivydesigner.uix.resources import get_png_resource
+from kivydesigner.uix.modalmsg import ModalMsg
 
 '''
 The file chooser has the following structure. Defined in py and kvlang.
@@ -43,7 +43,8 @@ types support two modes - read only mode and edit mode. While in edit mode the u
 rename the file or directory. Users can cancel edits by pressing escape. 
 '''
 
-Builder.load_file('kdfilechooser.kv', rulesonly=True)
+kv_filepath = Path(__file__).with_suffix('.kv')
+Builder.load_file(str(kv_filepath), rulesonly=True)
 
 class KDFileTreeView(FocusBehavior, TreeView):
 
@@ -125,7 +126,7 @@ class KDFileTreeView(FocusBehavior, TreeView):
         if isinstance(node, KDFilechooserEntry):
             parent_nodes.append(node)
         else:
-            # By design the top note is not a KDFilechooserEntry
+            # By design the top node is not a KDFilechooserEntry
             # Start at the root children to iterate over all KDFilechooserEntries
             parent_nodes.extend(self.root.nodes)
         
@@ -453,7 +454,6 @@ class KDFilechooserLayout(FileChooserLayout):
 
 if __name__ == '__main__':
     from kivy.app import runTouchApp
-    from pathlib import Path
     from kivy.factory import Factory
     Factory.register('IconButton', module='iconbutton')
 
