@@ -1,0 +1,137 @@
+# light grey/black
+#:set filechooser_background_color (0.15,0.15,0.15,1)
+# light blue
+#:set selection_color (0.196, 0.592, 0.992, 0.15)
+#:import get_png_resource kivydesigner.uix.resources.get_png_resource
+#:import get_svg_resource kivydesigner.uix.resources.get_svg_resource
+
+<KDFilechooserIconButton@IconButton>:
+    size_hint: None, None 
+    size: 20, 20
+    background_color: 0.85, 0.85, 0.85, int(self.state == 'down')
+    background_down: 'atlas://data/images/defaulttheme/button'
+
+<KDFilechooserLayout>:
+    on_entries_cleared: treeview.root.nodes = []
+    on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
+    on_remove_subentry: args[2].nodes = []
+    canvas.before:
+        Color:
+            rgba: filechooser_background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        pos: root.pos
+        size: root.size
+        size_hint: None, None
+        orientation: 'vertical'
+        padding: dp(10), 0, 0, 0
+        RelativeLayout:
+            id: header_layout
+            size_hint_y: None
+            height: '30dp'
+            orientation: 'horizontal'
+            Label:
+                id: title_label
+                pos: 0,0
+                size_hint_x: None
+                size: header_layout.width - 4*dp(25), header_layout.height
+                text: root.title
+                shorten: True
+                shorten_from: 'right'
+                text_size: self.size
+                halign: 'left'
+                bold: False
+            KDFilechooserIconButton:
+                id: btn_new_file
+                pos: title_label.width, dp(2)
+                source: get_svg_resource('new-file')
+                on_release: root.new_file()
+            KDFilechooserIconButton:
+                id: btn_open_folder
+                pos: btn_new_file.right + dp(5), dp(2)
+                source: get_svg_resource('open-folder')
+                on_release: root.select_root_path()
+            KDFilechooserIconButton:
+                id: btn_refresh
+                pos: btn_open_folder.right + dp(5), dp(2)
+                source: get_svg_resource('refresh')
+                on_release: root.refresh_entries()
+            KDFilechooserIconButton:
+                id: btn_collapse
+                pos: btn_refresh.right + dp(5), dp(2)
+                source: get_svg_resource('collapse')
+                on_release: root.collapse_all_nodes()
+        ScrollView:
+            id: scrollview
+            do_scroll_x: False
+            Scatter:
+                do_rotation: False
+                do_scale: False
+                do_translation: False
+                size: treeview.size
+                size_hint_y: None
+                KDFileTreeView:
+                    id: treeview
+                    hide_root: True
+                    size_hint_y: None
+                    width: scrollview.width
+                    height: self.minimum_height
+                    on_node_expand: root.controller.entry_subselect(args[1])
+                    on_node_collapse: root.controller.close_subselection(args[1])
+
+<KDFilechooser>:
+    layout: layout
+    dirselect: True
+    KDFilechooserLayout:
+        id: layout
+        controller: root
+        title: self.get_title_name(root.rootpath)
+
+# Use kvlang special syntax '-' to remove the inherited canvas instructions
+<-KDFileChooserEntry>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    spacing: '8dp'
+    height: '48dp' if dp(1) > 1 else '24dp'
+    odd_color: filechooser_background_color
+    even_color: filechooser_background_color
+    color_selected: 0.196, 0.592, 0.992, 0.15
+    canvas.before:
+        Color:
+            # Draw a light blue rectangle if the entry is selected
+            # Disable the selection rectangle if editing the entry
+            # Since the TextInput provides text selection highlighting
+            rgba: self.color_selected if (self.is_selected and not self.in_edit_mode) else filechooser_background_color
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            # Populate the entry icon, based on directory and file type
+            source: self.get_entry_icon_path(not self.is_leaf, self.is_open, self.height, self.path)
+            size: self.height / 1.5, self.height / 1.5
+            pos: self.x - dp(20), int(self.center_y - (self.height / 1.5) * .5)
+    canvas.after:
+        Color:
+            rgba: 0.196, 0.592, 0.992, int(self.is_selected)
+        Line:
+            # Draw a darker blue border around selected entries
+            rectangle: [self.parent.x+dp(1), self.y+dp(1), self.parent.width-dp(2), self.height-dp(2)] if self.parent else [0,0,0,0]
+
+# Templates are a deprecated kivy feature, but the implementation of 
+# FileChooserController forces us to use them since the _ENTRY_TEMPLATE
+# class var is used to instantiate new templated entries.
+# The template is initialized with the following context dictionary:
+#  {'name': str, 'get_nice_size': func, 'path': str, 'controller': ref,
+#   'isdir': bool, 'parent': ref, 'sep': str}
+[KDFilechooserEntryTemplate@KDFilechooserEntry]:
+    path: ctx.path
+    text: ctx.name
+    font_name: ctx.controller().font_name
+    # Don't allow expansion of the ../ node
+    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])

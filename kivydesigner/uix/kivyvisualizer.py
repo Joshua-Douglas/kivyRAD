@@ -13,5 +13,9 @@ class KivyVisualizer(BoxLayout):
     def handle_kv_change(self, instance, value):
         self.reload_func_ref(value)
 
-    def open_file(self, instance, new_filepath, new_filetxt):
-        self.editor.text = new_filetxt
+    def open_file(self, new_filepath):
+        try:
+            with open(new_filepath, 'r', encoding='utf8') as reader:
+                self.editor.text = reader.read()
+        except Exception as err:
+            self.editor.text = f'Could not open {new_filepath} \n {str(err)}'

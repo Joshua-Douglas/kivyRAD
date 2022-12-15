@@ -47,17 +47,11 @@ class FileToolbarGroup(Button):
         self._dropdown.open(self)
 
     def _open_file(self):
-        # User filechooser to select file
-        # pass filename to dispatch function
-        # Note: This will block the main thread, but that is
-        # fine. We don't need to do anything until file is selected
         file_path = filechooser.open_file(title='Open kv file to visualize', 
           filters = [['kv file (*kv)', '*kv'], ['all', '*']])
         if file_path:
             # Default to first selection in the event of a multiselect
-            with open(file_path[0], 'r', encoding='utf8') as reader:
-                file_contents = reader.read()
-                self.dispatch("on_open_file", file_path[0], file_contents)
+            self.dispatch("on_open_file", file_path[0])
 
     def _new_file(self):
         # use filechooser to set a new file name
@@ -67,5 +61,5 @@ class FileToolbarGroup(Button):
     def _open_folder(self):
         pass
 
-    def on_open_file(self, opened_filename, opened_filetxt):
+    def on_open_file(self, opened_filename):
         pass

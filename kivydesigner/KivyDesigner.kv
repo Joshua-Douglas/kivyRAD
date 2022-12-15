@@ -1,5 +1,6 @@
-#:import ICON_PATH kivydesigner.kivydesigner.ICON_PATH
 #:set menubar_color (0.2, 0.2, 0.2, 1)
+#:import get_png_resource kivydesigner.uix.resources.get_png_resource
+#:import Path pathlib.Path 
 
 RootWidget:
     orientation: 'vertical'
@@ -16,11 +17,11 @@ RootWidget:
         Image:
             size_hint: None, 1
             width: '30dp'
-            source: ICON_PATH
+            source: get_png_resource('kivy-icon', self.height)
         FileToolbarGroup:
             size_hint: None, 1
             width: '50dp'
-            on_open_file: visualizer.open_file(*args)
+            on_open_file: visualizer.open_file(args[1])
     BoxLayout: 
         # The main application including everything except toolbar
         BoxLayout:
@@ -29,7 +30,10 @@ RootWidget:
             # by sliding a resize bar
             size_hint: (None, 1)
             width: '300dp'
-            Label:
-                text: 'Side Toolbar Future Pos.'
+            KDFilechooser: 
+                rootpath: str(Path.cwd())
+                # Submit passes the selection as an Observable list
+                # Take the first entry since multiselection is disabled
+                on_submit: visualizer.open_file(args[1][0])
         KivyVisualizer:
             id: visualizer

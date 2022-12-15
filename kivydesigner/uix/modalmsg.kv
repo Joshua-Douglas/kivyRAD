@@ -1,0 +1,74 @@
+#:set header_height dp(20)
+#:set footer_height dp(40)
+#:import get_png_resource kivydesigner.uix.resources.get_png_resource
+
+<-ModalMsg>:
+    size_hint: None, None 
+    height: dp(150)
+    width: dp(450)
+    auto_dismiss: False
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle: 
+            size: self.width, self.height - footer_height  
+            pos: self.x, self.y + footer_height
+        Color: 
+            rgba: 0.74, 0.74, 0.74, 1
+        Rectangle: 
+            size: self.width, footer_height
+            pos: self.pos
+    canvas.after:
+        Color: 
+            rgba: 0.64, 0.64, 0.64, 1
+        Line: 
+            points: [self.x, self.y + footer_height, self.x + self.width, self.y + footer_height]
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(5), 0, 0, 0
+        Label:
+            color: 0, 0, 0, 1
+            size_hint_y: None
+            height: header_height
+            text: root.title
+            text_size: self.size
+            halign: 'left'
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: dp(5), 0, dp(5), 0
+            spacing: dp(5)
+            Image: 
+                size_hint_x: 0.25 if root.icon_name else None 
+                # Trick: width is ignored if size_hint_x != None
+                width: 0
+                source: get_png_resource(root.icon_name, self.height) if root.icon_name else ''
+            Label:
+                text: root.message
+                text_size: self.size
+                halign: 'left'
+                valign: 'center'
+                color: 0, 0.38, 1, 1
+        RelativeLayout:
+            id: btn_panel
+            size_hint_y: None 
+            height: footer_height
+            Button:
+                id: btn_cancel
+                color: 0.1, 0.1, 0.1, 1
+                background_color: 1.85, 1.85, 1.85, 1
+                size_hint: None, None
+                height: 24
+                width: root.cancel_btn_width
+                pos: btn_panel.width - self.width - dp(10), (btn_panel.height - self.height) // 2
+                text: root.cancel_btn_text
+                on_release: root.on_btn_release(False)
+            Button:
+                id: btn_ok
+                size_hint: None, None 
+                color: 0.1, 0.1, 0.1, 1
+                background_color: 1.85, 1.85, 1.85, 1
+                height: 24
+                width: root.yes_btn_width
+                pos: btn_cancel.x - self.width - dp(10), btn_cancel.y
+                text: root.yes_btn_text
+                on_release: root.on_btn_release(True)
