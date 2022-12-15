@@ -10,6 +10,10 @@ class ModalMsg(ModalView):
     title = StringProperty('Kivy Designer')
     message = StringProperty('')
     icon_name = StringProperty('info')
+    '''
+    icon_name is the name of the .png icon file to display on the ModalMsg
+    window, as registered in resources.py.
+    '''
     yes_btn_text = StringProperty('Yes')
     yes_btn_width = NumericProperty(60)
     cancel_btn_text = StringProperty('Cancel')

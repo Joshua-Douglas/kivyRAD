@@ -200,7 +200,6 @@ class KDFilechooserEntry(BoxLayout, TreeViewNode):
         self._text_viewer.font_name = self.font_name
 
     def _set_text_viewer(self, edit_mode):
-        # Add code to handle text input value here. 
         self.clear_widgets()
         # Only one editable node is allowed at a time. 
         # The node must be selected to enter edit mode

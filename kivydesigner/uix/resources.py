@@ -2,6 +2,15 @@ import os
 from pathlib import Path 
 import math 
 
+'''
+resource.py validates that application data is properly registered, and returns 
+the full filepath to the requested resource. 
+
+Application data is stored within the project data folder. PNG files must be provided
+in each of the sizes specified by SUPPORTED_PNG_SIZES_PX, to improve icon resolution
+when the use of an svg is not possible or practical.
+'''
+
 PARENT_DIR = Path(os.path.dirname(__file__)).parent
 DATA_FOLDER = os.path.join(PARENT_DIR, 'data') 
 
