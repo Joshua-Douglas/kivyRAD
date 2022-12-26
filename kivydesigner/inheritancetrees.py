@@ -9,18 +9,21 @@ class ClassDefNode:
     parents: list[str]
     children: list[str]
 
-class InheritanceGraphs:
+class InheritanceTrees:
     def __init__(self) -> None:
         self.nodes = dict()
 
-    def add_classdef(self, source_path, classname, parent_classnames):
+    def __len__(self):
+        return len(self.nodes)
+
+    def add_class(self, source_path, classname, parent_classnames):
         '''
         Add a class definition and parents to the graph. 
         If the class already exists, update its parents.
         If the parents already exist, update their children.
         Ignore duplicate entries. Enforce that a class can only have one set of parents.
         '''
-        class_node = self.nodes.get(classname)
+        class_node = self.get_class(classname)
         if class_node:
             if len(class_node.parents) == 0:
                 class_node.parents = parent_classnames
@@ -34,18 +37,21 @@ class InheritanceGraphs:
             self.nodes[classname] = class_node
 
         for parent_classname in parent_classnames:
-            parent_node = self.nodes.get(parent_classname)
+            parent_node = self.get_class(parent_classname)
             if parent_node:
                 parent_node.children.append(class_node.name)
             else:
-                parent_node = ClassDefNode(parent_classname, source_path, list(), [class_node.name])
+                parent_node = ClassDefNode(parent_classname, '', list(), [class_node.name])
                 self.nodes[parent_classname] = parent_node
+
+    def get_class(self, classname):
+        return self.nodes.get(classname)
 
     def get_subclasses(self, classname):
         '''
         Return a list of all subclasses of the given class.
         '''
-        class_node = self.nodes.get(classname)
+        class_node = self.get_class(classname)
         if class_node:
             subclasses = set(class_node.children)
             for child in class_node.children:
@@ -57,12 +63,12 @@ class InheritanceGraphs:
         '''
         Return a list of all superclasses of the given class.
         '''
-        class_node = self.nodes.get(classname)
+        class_node = self.get_class(classname)
         if class_node:
-            subclasses = set(class_node.parents)
+            superclasses = set(class_node.parents)
             for parent in class_node.parents:
-                subclasses.update(self.get_subclasses(parent))
-            return subclasses
+                superclasses.update(self.get_superclasses(parent))
+            return superclasses
         return set()
 
     def get_all_classes(self):
@@ -72,10 +78,10 @@ class InheritanceGraphs:
         '''
         Remove the given class from the graph.
         '''
-        class_node = self.nodes.get(classname)
+        class_node = self.get_class(classname)
         if class_node:
             for parent in class_node.parents:
-                parent_node = self.nodes.get(parent)
+                parent_node = self.get_class(parent)
                 parent_node.children.remove(class_node)
             for child in class_node.children:
                 child.parents.remove(class_node)
@@ -90,7 +96,7 @@ class InheritanceGraphs:
             self.remove_class(subclass)
 
 
-class InheritanceGraphsBuilder(ast.NodeVisitor):
+class InheritanceTreesBuilder(ast.NodeVisitor):
     '''
     Build inheritance graphs from python source code,
     without executing any code by parsing the AST.
@@ -98,7 +104,7 @@ class InheritanceGraphsBuilder(ast.NodeVisitor):
 
     def __init__(self) -> None:
         self.current_filepath = None
-        self.graphs = InheritanceGraphs()
+        self.graphs = InheritanceTrees()
 
     def visit_ClassDef(self, node):
         parents = list()
@@ -129,7 +135,7 @@ class InheritanceGraphsBuilder(ast.NodeVisitor):
             else:
                 raise Exception("Unknown base type: " + str(type(base)))
                 
-        self.graphs.add_classdef(self.current_filepath, node.name, parents)
+        self.graphs.add_class(self.current_filepath, node.name, parents)
 
     def build(self, file_source, source_filepath=None):
         tree = ast.parse(file_source)
