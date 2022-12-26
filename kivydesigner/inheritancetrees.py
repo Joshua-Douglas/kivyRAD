@@ -104,7 +104,7 @@ class InheritanceTreesBuilder(ast.NodeVisitor):
 
     def __init__(self) -> None:
         self.current_filepath = None
-        self.graphs = InheritanceTrees()
+        self.tree = InheritanceTrees()
 
     def visit_ClassDef(self, node):
         parents = list()
@@ -135,14 +135,14 @@ class InheritanceTreesBuilder(ast.NodeVisitor):
             else:
                 raise Exception("Unknown base type: " + str(type(base)))
                 
-        self.graphs.add_class(self.current_filepath, node.name, parents)
+        self.tree.add_class(self.current_filepath, node.name, parents)
 
     def build(self, file_source, source_filepath=None):
         tree = ast.parse(file_source)
         self.current_filepath = source_filepath
         self.visit(tree)
         self.current_filepath = None
-        return self.graphs
+        return self.tree
 
     def build_from_file(self, filepath):
         try:

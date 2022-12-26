@@ -1,4 +1,4 @@
-from kivydesigner.inheritancetrees import InheritanceTrees
+from kivydesigner.inheritancetrees import InheritanceTrees, InheritanceTreesBuilder
 
 ## Let's hard code the example files here as strings for now
 SIMPLE_PY_1 = \
@@ -201,10 +201,33 @@ def test_generic_widgets_simple():
     assert tree.get_subclasses('Generic[T]') == set(['GenericParent'])
     assert tree.get_subclasses('GenericParent') == set()
 
-def test_building_from_string():
+def test_tree_builder_simple():
     '''Test parsing a single file with simple inheritance'''
     # Add a simple py file to the test data above
+    builder = InheritanceTreesBuilder()
+    builder.build('''
+from kivy import Widget
+
+class SimpleWidget(Widget):
+    pass 
+
+class SimpleWidgetChild(SimpleWidget):
     pass
+
+class UnrelatedObject:
+    pass
+''')
+    tree = builder.tree
+    assert len(tree) == 4
+    assert tree.get_subclasses('Widget') == set(['SimpleWidget', 'SimpleWidgetChild'])
+    assert tree.get_subclasses('SimpleWidget') == set(['SimpleWidgetChild'])
+    assert tree.get_subclasses('SimpleWidgetChild') == set()
+    assert tree.get_subclasses('UnrelatedObject') == set()
+
+    assert tree.get_superclasses('Widget') == set()
+    assert tree.get_superclasses('SimpleWidget') == set(['Widget'])
+    assert tree.get_superclasses('SimpleWidgetChild') == set(['SimpleWidget', 'Widget'])
+    assert tree.get_superclasses('UnrelatedObject') == set([])
 
 def test_serial_building_from_string():
     '''Test that parsing multiple files in serial will combine
