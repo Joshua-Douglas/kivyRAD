@@ -82,26 +82,69 @@ class InheritanceTrees:
         if class_node:
             for parent in class_node.parents:
                 parent_node = self.get_class(parent)
-                parent_node.children.remove(class_node)
+                parent_node.children.remove(class_node.name)
             for child in class_node.children:
-                child.parents.remove(class_node)
+                child_node = self.get_class(child)
+                child_node.parents.remove(class_node.name)
             del self.nodes[classname]
     
     def remove_class_and_subclasses(self, classname):
         '''
         Remove the given class and all its subclasses from the graph.
         '''
-        self.remove_class(classname)
         for subclass in self.get_subclasses(classname):
             self.remove_class(subclass)
-
+        self.remove_class(classname)
+        
+    def remove_source(self, source_path):
+        '''
+        Remove all class definitions from a given source file.
+        '''
+        cls_to_remove = \
+            [(name, node) for (name, node) in self.nodes.items() 
+                if node.source_path == source_path]
+        for name, node in cls_to_remove:
+            if node.source_path != source_path:
+                continue
+            # 1. Remove all the children that are in the same 
+            # source file. Keep children that are in other files,
+            # since these other classdefs will rely on this node.
+            for child in node.children.copy():
+                child_node = self.get_class(child)
+                if child_node.source_path == source_path:
+                    node.children.remove(child)
+            #2. Clear the parent_node's children list of this node.
+            for parent in node.parents.copy():
+                parent_node = self.get_class(parent)
+                if parent_node:
+                    parent_node.children.remove(node.name)
+                    if parent_node.source_path == source_path:
+                        node.parents.remove(parent)
+                # If the parent node has no parents or children, then it has 
+                # only been encountered in this source file. Remove it.
+                    if (len(parent_node.parents) == 0) and (len(parent_node.children) == 0):
+                        del self.nodes[parent]
+            #3. Clear node parents. The parents must be defined in current source.
+            node.parents = []
+            #4. If the children list is empty, remove the node.
+            if len(node.children) == 0:
+                del self.nodes[name]
 
 class InheritanceTreesBuilder(ast.NodeVisitor):
     '''
     Build inheritance graphs from python source code,
     without executing any code by parsing the AST.
-    '''
 
+    This inheritance tree has several known limitations. None of which should 
+    prevent building valid widget trees in the majority of cases:
+    - Duplicate class names will can cause errors in the final tree. The 
+    parent modules are not known at the time of parsing (without some exhaustive
+    searching), so class names are compared using a global namespace. 
+    - Generic classes are not well supported.
+    - In rare cases, the ClassDef parent declaration may be a function 
+    that returns the correct parent type at runtime. Since we are not 
+    executing any code, these classes are ignored.
+    '''
     def __init__(self) -> None:
         self.current_filepath = None
         self.tree = InheritanceTrees()
@@ -155,6 +198,13 @@ class InheritanceTreesBuilder(ast.NodeVisitor):
         for filepath in Path(directory).rglob('**/*.py'):
             if file_filter and file_filter(filepath):
                 self.build_from_file(filepath)
+
+    def refresh_source_file(self, filepath):
+        '''
+        Refresh the inheritance tree by re-parsing a single file.
+        '''
+        self.tree.remove_source(filepath)
+        self.build_from_file(filepath)
 
     @classmethod
     def kivy_widget_tree(cls):

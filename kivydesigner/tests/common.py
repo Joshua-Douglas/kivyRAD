@@ -1,11 +1,14 @@
 
 import os 
+import shutil
 import os.path as path
 os.environ['KIVY_UNITTEST_SCREENSHOTS'] = '1'
+import pytest
 
 from kivy.tests.common import GraphicUnitTest
 
 TEST_DATA_DIR = path.join(path.dirname(__file__), 'test_data')
+TMP_DATA_DIR = path.join(path.dirname(__file__), 'test_output')
 
 class KDGraphicUnitTest(GraphicUnitTest):
 
@@ -24,3 +27,12 @@ class KDGraphicUnitTest(GraphicUnitTest):
         import os.path as path
         self.results_dir = TEST_DATA_DIR
         super(KDGraphicUnitTest, self).setUp()
+
+@pytest.fixture
+def test_output_dir():
+    '''Fixture to create a test output directory.
+    Cleanup all created files after test.
+    '''
+    os.mkdir(TMP_DATA_DIR)
+    yield TMP_DATA_DIR
+    shutil.rmtree(TMP_DATA_DIR)
