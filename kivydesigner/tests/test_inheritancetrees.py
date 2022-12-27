@@ -1,5 +1,6 @@
 from kivydesigner.inheritancetrees import InheritanceTrees, InheritanceTreesBuilder
 
+
 ## Let's hard code the example files here as strings for now
 SIMPLE_PY_1 = \
 '''
@@ -52,6 +53,8 @@ class CustomLayout(Layout):
     pass
 '''
 
+KNOWN_KIVY_WIDGETS = {'ModalView', 'Accordion', 'FileChooser', 'VideoPlayerStop', 'ActionButton', 'RstNote', 'VideoPlayer', 'ColorPicker', 'TreeViewLabel', 'Scatter', 'TabbedPanel', 'SettingBoolean', 'ProxyImage', 'TabbedPanelItem', 'ActionSeparator', 'TextInput', 'ConsoleAddonSeparator', 'InterfaceWithTabbedPanel', 'ScatterLayout', 'FileChooserListView', 'GridLayout', 'BubbleButton', 'VKeyboard', 'SettingSidebarLabel', 'RstFootName', 'AnchorLayout', 'MenuSidebar', 'RstFootnote', 'TreeViewWidget', 'ActionBar', 'VideoPlayerProgressBar', 'RstVideoPlayer', 'PageLayout', 'GestureSurface', 'SpinnerOption', 'ContextualActionView', 'ConsoleAddonBreadcrumbView', 'StencilView', 'FileChooserProgress', 'RstListBullet', 'TextInputCutCopyPaste', 'RstDocument', 'EffectWidget', 'ConsoleLabel', 'SettingString', 'VideoPlayerPlayPause', 'VideoPlayerAnnotation', 'TabbedPanelContent', 'RstFieldList', 'MainWindow', 'BoxLayout', 'SettingColor', 'TabbedPanelStrip', 'ConsoleAddonWidgetTreeImpl', 'AsyncImage', 'RstDefinitionList', 'RstList', 'Spinner', 'RstEmptySpace', 'CodeInput', 'Layout', 'ToggleButton', 'SettingsWithTabbedPanel', 'SettingsWithSidebar', 'RecycleLayout', 'ConsoleToggleButton', 'ActionOverflow', 'FileChooserLayout', 'ActionGroup', 'ActionToggleButton', 'RstAsyncImage', 'StackLayout', 'TreeView', 'RstFieldName', 'RstSystemMessage', 'RstEntry', 'StripLayout', 'Splitter', 'Video', 'Bubble', 'Selector', 'ProgressBar', 'ConsoleButton', 'RstTerm', 'ActionCheck', 'SettingPath', 'RecycleView', 'SettingsWithNoMenu', 'BubbleContent', 'Slider', 'Inspector', 'RstTable', 'InterfaceWithSidebar', 'Button', 'Popup', 'ScatterPlane', 'Console', 'MenuSpinner', 'WidgetTree', 'RstListItem', 'SettingsWithSpinner', 'RstDefinitionSpace', 'Settings', 'RstBlockQuote', 'RstLiteralBlock', 'RstGridLayout', 'FileChooserProgressBase', 'SettingTitle', 'FileChooserIconLayout', 'Label', 'ActionPrevious', 'VideoPlayerVolume', 'RecycleBoxLayout', 'RstParagraph', 'ActionView', 'ContentPanel', 'ColorWheel', 'SettingSpacer', 'JoyCursor', 'Switch', 'VideoPlayerPreview', 'ScatterPlaneLayout', 'FileChooserListLayout', 'SplitterStrip', 'RstDefinition', 'SettingItem', 'RecycleGridLayout', 'InterfaceWithNoMenu', 'FloatLayout', 'TreeViewProperty', 'SettingOptions', 'RstImage', 'InterfaceWithSpinner', 'RelativeLayout', 'RstWarning', 'ConsoleAddonWidgetTreeView', 'TestButton', 'ActionLabel', 'AccordionItem', 'SettingsPanel', 'Screen', 'FileChooserIconView', 'CheckBox', 'Sandbox', 'SettingNumeric', 'ScrollView', 'RstTransition', 'SandboxContent', 'Image', 'Carousel', 'ScreenManager', 'FileChooserController', 'DropDown', 'Camera', 'RstTitle', 'RstFieldBody', 'ActionDropDown', 'TabbedPanelHeader'}
+KNOWN_KIVY_APPS = {'KvViewerApp', 'ScrollViewApp', 'ColorPickerApp', 'SliderApp', 'TestApp', 'FileChooserApp', 'Example1', 'SettingsApp', 'VideoApp', 'CodeInputTest', 'SplitterApp', 'TextInputApp'}
 def test_add_simple_class():
     tree = InheritanceTrees()
     tree.add_class(__file__, 'SimpleWidget', [])
@@ -246,7 +249,12 @@ def test_widget_search():
 def test_known_kivy_widget_classes():
     '''Scan the current kivy installation and verify that our 
     hode coded list of known kivy widgets and App classes is correct.'''
-    pass 
+    builder = InheritanceTreesBuilder.kivy_widget_tree()   
+    found_widgets = builder.tree.get_subclasses('Widget')
+    found_apps = builder.tree.get_subclasses('App')
+
+    assert found_widgets == KNOWN_KIVY_WIDGETS
+    assert found_apps == KNOWN_KIVY_APPS
 
 def test_building_from_directory():
     '''Test that building an inheritance graph from a directory works correctly'''

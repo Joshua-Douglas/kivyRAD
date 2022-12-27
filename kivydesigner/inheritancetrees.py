@@ -151,6 +151,28 @@ class InheritanceTreesBuilder(ast.NodeVisitor):
         except:
             return None
 
-    def build_from_directory(self, directory):
+    def build_from_directory(self, directory, file_filter=None):
         for filepath in Path(directory).rglob('**/*.py'):
-            self.build_from_file(filepath)
+            if file_filter and file_filter(filepath):
+                self.build_from_file(filepath)
+
+    @classmethod
+    def kivy_widget_tree(cls):
+        '''
+        Build a graph of all kivy widgets and app classes.
+        Exclude test classes.
+        '''
+        import kivy
+        kivy_root_dir = kivy.__path__[0]
+        dirs_to_exclude = (
+            Path(kivy_root_dir) / 'tests',
+            Path(kivy_root_dir) / 'core',
+            Path(kivy_root_dir) / 'graphics',
+            Path(kivy_root_dir) / 'input',
+            Path(kivy_root_dir) / 'lib'
+        )
+        builder = cls()
+        builder.build_from_directory(kivy.__path__[0], 
+            lambda filepath: not any(filepath.is_relative_to(parent) for parent in dirs_to_exclude)) 
+            #any(parent in Path(filename).parts for parent in dirs_to_exclude))
+        return builder
