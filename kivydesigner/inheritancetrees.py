@@ -8,6 +8,8 @@ class ClassDefNode:
     source_path: str
     parents: list[str]
     children: list[str]
+    def is_empty(self):
+        return len(self.parents) == 0 and len(self.children) == 0
 
 class InheritanceTrees:
     def __init__(self) -> None:
@@ -100,35 +102,17 @@ class InheritanceTrees:
         '''
         Remove all class definitions from a given source file.
         '''
-        cls_to_remove = \
-            [(name, node) for (name, node) in self.nodes.items() 
-                if node.source_path == source_path]
-        for name, node in cls_to_remove:
-            if node.source_path != source_path:
-                continue
-            # 1. Remove all the children that are in the same 
-            # source file. Keep children that are in other files,
-            # since these other classdefs will rely on this node.
-            for child in node.children.copy():
-                child_node = self.get_class(child)
-                if child_node.source_path == source_path:
-                    node.children.remove(child)
-            #2. Clear the parent_node's children list of this node.
-            for parent in node.parents.copy():
-                parent_node = self.get_class(parent)
-                if parent_node:
-                    parent_node.children.remove(node.name)
-                    if parent_node.source_path == source_path:
-                        node.parents.remove(parent)
-                # If the parent node has no parents or children, then it has 
-                # only been encountered in this source file. Remove it.
-                    if (len(parent_node.parents) == 0) and (len(parent_node.children) == 0):
-                        del self.nodes[parent]
-            #3. Clear node parents. The parents must be defined in current source.
-            node.parents = []
-            #4. If the children list is empty, remove the node.
-            if len(node.children) == 0:
-                del self.nodes[name]
+        for class_node in self.nodes.values():
+            if class_node.source_path == source_path:
+                for parent in class_node.parents:
+                    parent_node = self.get_class(parent)
+                    parent_node.children.remove(class_node.name)
+                class_node.parents = []
+                class_node.source_path = ''
+
+        empty_nodes = [name for name, node in self.nodes.items() if node.is_empty()]
+        for node in empty_nodes:
+            del self.nodes[node]
 
 class InheritanceTreesBuilder(ast.NodeVisitor):
     '''
