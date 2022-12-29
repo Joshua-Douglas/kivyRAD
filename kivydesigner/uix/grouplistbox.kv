@@ -1,0 +1,18 @@
+<GroupListBox>:
+    id: scrollview
+    do_scroll_x: False
+    treeview: treeview
+    layout: scatter_layout
+    Scatter:
+        id: scatter_layout
+        do_rotation: False
+        do_scale: False
+        do_translation: False
+        size: treeview.size
+        size_hint_y: None
+        TreeView:
+            id: treeview
+            hide_root: True
+            size_hint_y: None
+            width: scrollview.width
+            height: self.minimum_height

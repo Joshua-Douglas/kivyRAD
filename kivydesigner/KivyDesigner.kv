@@ -29,11 +29,13 @@ RootWidget:
             # In the future we can allow the user to edit this
             # by sliding a resize bar
             size_hint: (None, 1)
-            width: '300dp'
+            width: '350dp'
+            orientation: 'vertical'
             KDFilechooser: 
                 rootpath: str(Path.cwd())
                 # Submit passes the selection as an Observable list
                 # Take the first entry since multiselection is disabled
                 on_submit: visualizer.open_file(args[1][0])
+            GroupListBox:
         KivyVisualizer:
             id: visualizer
