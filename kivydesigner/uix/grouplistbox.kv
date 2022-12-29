@@ -1,3 +1,42 @@
+# light grey/black
+#:set entry_background_color (0.15,0.15,0.15,1)
+# light blue
+#:set selection_color (0.196, 0.592, 0.992, 0.15)
+
+# To-Do: Modify on-click handler for ListBoxTitleNode to prevent this node from being toggled.
+# Also, modify the groups to collapse if they are clicked anywhere
+<ListBoxTitleNode>:
+    canvas.before:
+        Color: # background color
+            rgba: .3, .3, .3, 1.
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+
+<ListBoxEntry>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    spacing: '8dp'
+    height: '48dp' if dp(1) > 1 else '24dp'
+    odd_color: entry_background_color
+    even_color: entry_background_color
+    color_selected: 0.196, 0.592, 0.992, 0.15
+    canvas.before:
+        Color:
+            # Draw a light blue rectangle if the entry is selected
+            # Disable the selection rectangle if editing the entry
+            # Since the TextInput provides text selection highlighting
+            rgba: self.color_selected if self.is_selected else entry_background_color
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+    canvas.after:
+        Color:
+            rgba: 0.196, 0.592, 0.992, int(self.is_selected)
+        Line:
+            # Draw a darker blue border around selected entries
+            rectangle: [self.parent.x+dp(1), self.y+dp(1), self.parent.width-dp(2), self.height-dp(2)] if self.parent else [0,0,0,0]
+    
 <GroupListBox>:
     id: scrollview
     do_scroll_x: False
@@ -10,9 +49,12 @@
         do_translation: False
         size: treeview.size
         size_hint_y: None
-        TreeView:
+        ListBoxTree:
             id: treeview
-            hide_root: True
+            indent_start: dp(7)
+            root_options: {"text": root.title}
+            hide_root: not root.title 
             size_hint_y: None
             width: scrollview.width
             height: self.minimum_height
+
