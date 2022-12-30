@@ -28,6 +28,7 @@ RootWidget:
             # Side toolbar. Set to fixed size of 275 dp 
             # In the future we can allow the user to edit this
             # by sliding a resize bar
+            id: sidebar_boxlayout
             size_hint: (None, 1)
             width: '350dp'
             orientation: 'vertical'
@@ -36,6 +37,11 @@ RootWidget:
                 # Submit passes the selection as an Observable list
                 # Take the first entry since multiselection is disabled
                 on_submit: visualizer.open_file(args[1][0])
-            GroupListBox:
+            Splitter:
+                sizable_from: "top"
+                max_size: sidebar_boxlayout.height - dp(100)
+                strip_size: dp(8)
+                GroupListBox:
+                    title: "AVAILABLE WIDGETS"
         KivyVisualizer:
             id: visualizer
