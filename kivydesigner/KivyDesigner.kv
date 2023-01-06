@@ -33,15 +33,18 @@ RootWidget:
             width: '350dp'
             orientation: 'vertical'
             KDFilechooser: 
+                id: file_explorer
                 rootpath: str(Path.cwd())
                 # Submit passes the selection as an Observable list
                 # Take the first entry since multiselection is disabled
                 on_submit: visualizer.open_file(args[1][0])
+                #on_rootpath: root.rootpath(args[1])
             Splitter:
                 sizable_from: "top"
                 max_size: sidebar_boxlayout.height - dp(100)
                 strip_size: dp(8)
                 KivyWidgetListBox:
                     title: "AVAILABLE WIDGETS"
+                    project_path: file_explorer.rootpath
         KivyVisualizer:
             id: visualizer

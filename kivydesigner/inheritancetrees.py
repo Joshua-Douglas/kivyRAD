@@ -191,6 +191,13 @@ class InheritanceTreesBuilder(ast.NodeVisitor):
         self.build_from_file(filepath)
 
     @classmethod
+    def empty(cls):
+        '''
+        Return an empty inheritance tree.
+        '''
+        return cls().tree
+
+    @classmethod
     def kivy_widget_tree(cls):
         '''
         Build a graph of all kivy widgets and app classes.

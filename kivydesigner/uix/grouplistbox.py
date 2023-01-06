@@ -46,3 +46,6 @@ class GroupListBox(BoxLayout):
         group = self.treeview.add_node(ListBoxGroup(text=group_name, is_open=True))
         for item in sorted(items):
             self.treeview.add_node(ListBoxEntry(text=item), group)
+
+    def clear(self):
+        self.treeview.clear_widgets()
