@@ -16,7 +16,6 @@ class KivyWidgetListBox(GroupListBox):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.inheritance_tree = copy.copy(KivyWidgetListBox.kivy_inheritance_tree)
-        Clock.schedule_once(self.update_user_defined_widgets, 0)
         
     def on_project_path(self, instance, value):
         '''
@@ -24,7 +23,7 @@ class KivyWidgetListBox(GroupListBox):
         '''
         self.update_user_defined_widgets()
 
-    def update_user_defined_widgets(self, dt=0):
+    def update_user_defined_widgets(self):
         '''
         Flush all previous user defined widgets and apps from inheritance tree
         and treeview, and repopulate the treeview with the user defined widgets
@@ -42,6 +41,8 @@ class KivyWidgetListBox(GroupListBox):
         3) Clear() is not removing the user defined groups from the treeview.
         '''
         if not (self.project_path and Path(self.project_path).is_dir()):
+            self.add_group('STANDARD KIVY APPS', self.standard_library_apps)
+            self.add_group('STANDARD KIVY WIDGETS', self.standard_library_widgets)
             return
 
         builder = InheritanceTreesBuilder()
