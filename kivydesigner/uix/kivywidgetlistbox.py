@@ -1,5 +1,6 @@
 from pathlib import Path
 import copy
+import site
 
 from kivy.clock import Clock
 from kivy.properties import StringProperty
@@ -32,14 +33,6 @@ class KivyWidgetListBox(GroupListBox):
         The project path must be a valid directory. 
         '''
         self.clear()
-        '''
-        To-Do:
-        1) Why is this method called multiple times at startup? We should avoid multiple
-        calls to the expensive InheritanceTreesBuilder.build_from_directory method.
-        2) build_from_directory is failing for some reason. It is not finding the
-        user defined widgets in the project path.
-        3) Clear() is not removing the user defined groups from the treeview.
-        '''
         if not (self.project_path and Path(self.project_path).is_dir()):
             self.add_group('STANDARD KIVY APPS', self.standard_library_apps)
             self.add_group('STANDARD KIVY WIDGETS', self.standard_library_widgets)
@@ -47,7 +40,12 @@ class KivyWidgetListBox(GroupListBox):
 
         builder = InheritanceTreesBuilder()
         builder.tree = self.inheritance_tree
-        builder.build_from_directory(self.project_path)
+
+        # Search project path for user defined widgets and apps.
+        # Exclude external packages from search.
+        dirs_to_exclude = [Path(path) for path in site.getsitepackages()]
+        builder.build_from_directory(self.project_path,
+            lambda filepath: not any(filepath.is_relative_to(parent) for parent in dirs_to_exclude)) 
 
         user_defined_widgets = self.inheritance_tree.get_subclasses('Widget')
         user_defined_widgets -= self.standard_library_widgets
