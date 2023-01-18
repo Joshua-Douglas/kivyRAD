@@ -48,4 +48,6 @@ class GroupListBox(BoxLayout):
             self.treeview.add_node(ListBoxEntry(text=item), group)
 
     def clear(self):
-        self.treeview.clear_widgets()
+        all_nodes = tuple(self.treeview.iterate_all_nodes())
+        for node in all_nodes:
+            self.treeview.remove_node(node)
