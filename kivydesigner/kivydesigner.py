@@ -29,9 +29,7 @@ class KivyDesignerApp(App):
         self.title = 'Kivy Designer'
         self.visualization_instructions = HotReloadInstructionQueue()
         self.visualization_subprocess = None
-        src_dir = Path(os.path.dirname(__file__))
-        root_widget = Builder.load_file(os.path.join(src_dir, 'KivyDesigner.kv'))
-        return root_widget
+        return super().build()
 
     def on_stop(self):
         '''
