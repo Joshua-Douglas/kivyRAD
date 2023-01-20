@@ -38,7 +38,6 @@ RootWidget:
                 # Submit passes the selection as an Observable list
                 # Take the first entry since multiselection is disabled
                 on_submit: visualizer.open_file(args[1][0])
-                #on_rootpath: root.rootpath(args[1])
             Splitter:
                 sizable_from: "top"
                 max_size: sidebar_boxlayout.height - dp(100)
