@@ -46,11 +46,23 @@ class KivyWidgetListBox(GroupListBox):
         builder = InheritanceTreesBuilder()
         builder.tree = self.inheritance_tree
 
+        dirs_to_exclude = [Path(path) for path in site.getsitepackages()]
+        parent_prefixes_to_exclude = ('.', '_', '__')
+        def is_valid_path(filepath):
+            from_excluded_dir = any(filepath.is_relative_to(parent) for parent in dirs_to_exclude)
+            if from_excluded_dir:
+                return False
+            # Parts will return a list of the directory names and 
+            # the root drive path. This excludes paths such as
+            # __pycache__ and .git. Instead of doing an exhaustive search, 
+            # just check if the child directory starts with a prefix
+            if filepath.is_dir():
+                child_dir = filepath.parts[-1]
+                return not any(child_dir.startswith(prefix) for prefix in parent_prefixes_to_exclude)
+            return True
         # Search project path for user defined widgets and apps.
         # Exclude external packages from search.
-        dirs_to_exclude = [Path(path) for path in site.getsitepackages()]
-        builder.build_from_directory(self.project_path,
-            lambda filepath: not any(filepath.is_relative_to(parent) for parent in dirs_to_exclude)) 
+        builder.build_from_directory(self.project_path, is_valid_path)
 
         user_defined_widgets = self.inheritance_tree.get_subclasses('Widget')
         user_defined_widgets -= self.standard_library_widgets

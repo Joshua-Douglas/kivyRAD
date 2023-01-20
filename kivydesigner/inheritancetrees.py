@@ -179,9 +179,13 @@ class InheritanceTreesBuilder(ast.NodeVisitor):
             return None
 
     def build_from_directory(self, directory, file_filter=None):
-        for filepath in Path(directory).rglob('**/*.py'):
-            if file_filter and file_filter(filepath):
-                self.build_from_file(filepath)
+        for pathitem in Path(directory).glob('*'):
+            if file_filter and file_filter(pathitem):
+                print(pathitem)
+                if pathitem.is_dir():
+                    self.build_from_directory(pathitem, file_filter)
+                elif pathitem.is_file() and pathitem.suffix == ".py":
+                    self.build_from_file(pathitem)
 
     def refresh_source_file(self, filepath):
         '''
