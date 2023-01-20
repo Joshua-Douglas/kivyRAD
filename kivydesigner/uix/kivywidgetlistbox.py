@@ -10,9 +10,14 @@ from kivydesigner.inheritancetrees import InheritanceTreesBuilder
 class KivyWidgetListBox(GroupListBox):
 
     project_path = StringProperty(None, allow_none=True)
+    '''Search path used to populate the listbox with user defined widgets and apps.
+    If None, the listbox will only contain the standard kivy widgets and apps.'''
     kivy_inheritance_tree = InheritanceTreesBuilder.kivy_widget_tree().tree
+    '''Static reference to inheritance tree populated with kivy standard library widgets and apps.'''
     standard_library_apps = kivy_inheritance_tree.get_subclasses('App')
+    '''Static set of all kivy standard library apps.'''
     standard_library_widgets = kivy_inheritance_tree.get_subclasses('Widget')
+    '''Static set of all kivy standard library widgets.'''
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -54,8 +59,8 @@ class KivyWidgetListBox(GroupListBox):
 
         self.add_group('USER DEFINED APPS', user_defined_apps)
         self.add_group('USER DEFINED WIDGETS', user_defined_widgets)
-        self.add_group('STANDARD KIVY APPS', self.standard_library_apps)
         self.add_group('STANDARD KIVY WIDGETS', self.standard_library_widgets)
+        self.add_group('STANDARD KIVY APPS', self.standard_library_apps)
 
     def clear(self):
         super().clear()
