@@ -2,18 +2,31 @@ Param(
     [ValidateScript({
         if(-Not (Test-Path $_)){
             throw "Path does not exist"
-        } else if (-Not (Test-Path $_ -PathType 'Container')){
+        } elseif (-Not (Test-Path $_ -PathType 'Container')){
             throw "Path is not a directory"
         }
-        })]
-        Test-Path $_ -PathType ‘Container’
-        })]
+    })]
     [System.IO.FileInfo]
-    $Path = $PSScriptRoot
+    $Path = $PSScriptRoot,
     [string]
-    $VenvName = "kivyrad"
+    $Name = "kivyrad",
+    [switch]
+    $Regenerate
 )
 
-# To-Do. Add option to clean venv. build venv from requirements. Add option to regenerate requirements using pipreqs. 
+$venvPath = Join-Path $Path $Name
+if (-not (Test-Path $venvPath) ) {
+    python -m venv $venvPath
+}
+$activatePath = Join-Path $venvPath "Scripts" "Activate.ps1"
+Write-Output $activatePath
+Invoke-Expression $activatePath
+
+$srcPath = Join-Path $PSScriptRoot "kivydesigner"
 python -m pip install --upgrade pip 
-python -m venv $VenvName
+if ($Regenerate) {
+    python -m pip install pipreqs
+    pipreqs $srcPath --force
+}
+$reqsPath = Join-Path $srcPath "requirements.txt"
+python -m pip install -r $reqsPath
