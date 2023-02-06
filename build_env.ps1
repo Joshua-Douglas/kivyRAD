@@ -19,7 +19,6 @@ if (-not (Test-Path $venvPath) ) {
     python -m venv $venvPath
 }
 $activatePath = Join-Path $venvPath "Scripts" "Activate.ps1"
-Write-Output $activatePath
 Invoke-Expression $activatePath
 
 $srcPath = Join-Path $PSScriptRoot "kivydesigner"
