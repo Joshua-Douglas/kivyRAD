@@ -14,4 +14,4 @@ python main.py
 
 To begin visualizing, open your kivy project select the widget from the auto-populated list of widgets, or select the file to visualize. Edits to the selected widget will be shown in realtime, in a separate kivy window. 
 
-![modalmsg_hotreload](.\kivydesigner\data\demos\modalmsg_hotreload.gif)
+![modalmsg_hotreload](https://user-images.githubusercontent.com/22138019/216899557-c8117325-372f-416a-b3fb-6514ede7d780.gif)
