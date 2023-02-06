@@ -1,19 +1,17 @@
-# Kivy Designer
-A development tool for rapid cross platform application development using Python.
+# KivyRad
+KivyRAD is intended to speed up the kivy widget development process by introducing widget and application hot-reloading. Components are reloaded by restarting the visualized widget or application in a separate process. In the future, we hope to support a property editor that is capable of applying changes without a complete restart. 
 
-# Developer Setup
-This project uses `pipenv` for dependency management.
-```
-# Install with development dependencies (e.g. pytest, etc.)
-$ pipenv install --dev
+The application is in the alpha phase, and currently only supports windows development. Feature suggestions and contributions are welcome. 
 
-# Install without development dependencies
-$ pipenv install
+# Application Setup
+This project uses `venv` for dependency management. A powershell script, `build_env.ps1`, is provided to build the virtual environment, and clean the `requirements.txt` file. 
+
+Once the virtual environment you can launch the application by simply running `main.py`:
+
+```
+python main.py
 ```
 
-If for any reason you encounter installation issue, you should be able to utilize the pipfile.lock for a safe, deterministic build. 
+To begin visualizing, open your kivy project and select the widget from the auto-populated list of widgets. Edits to the selected widget will be shown in realtime, in a separate kivy window. 
 
-Please submit an issue if this approach is needed:
-```
-$ pipenv install --ignore-pipfile
-```
+![modalmsg_hotreload](https://user-images.githubusercontent.com/22138019/216899557-c8117325-372f-416a-b3fb-6514ede7d780.gif)
