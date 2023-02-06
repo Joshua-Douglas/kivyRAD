@@ -13,4 +13,4 @@ python main.py
 ```
 
 To begin visualizing, open your kivy project select the widget from the auto-populated list of widgets, or select the file to visualize. 
-![ModalMsgHotReload](.\kivydesigner\data\demos\modalmsg_hotreload.mov)
+[![ModalMsgHotReload](https://user-images.githubusercontent.com/22138019/216897573-bc3eae0c-85be-4953-af65-288a1193b46a.PNG)](https://user-images.githubusercontent.com/22138019/216895892-9f67f1e9-82ad-4f6e-974c-b178a1f798c6.mov "ModalMsgHotReload")
